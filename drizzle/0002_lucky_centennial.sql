@@ -1,0 +1,1 @@
+ALTER TABLE `iphones` MODIFY COLUMN `priceAdjustValue` decimal(10,2) NOT NULL;

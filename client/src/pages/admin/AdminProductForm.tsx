@@ -75,7 +75,11 @@ export default function AdminProductForm() {
       utils.admin.listIphones.invalidate();
       navigate("/admin/produtos");
     },
-    onError: (e) => toast.error(`Erro: ${e.message}`),
+    onError: (e: any) => {
+      console.error('[AdminProductForm] Create error:', e);
+      const errorMsg = e.data?.zodError ? Object.values(e.data.zodError).flat().join(', ') : (e.message || 'Erro desconhecido');
+      toast.error(`Erro ao criar: ${errorMsg}`);
+    },
   });
 
   const updateMutation = trpc.admin.updateIphone.useMutation({
@@ -87,7 +91,11 @@ export default function AdminProductForm() {
       utils.admin.listIphones.invalidate();
       navigate("/admin/produtos");
     },
-    onError: (e) => toast.error(`Erro: ${e.message}`),
+    onError: (e: any) => {
+      console.error('[AdminProductForm] Update error:', e);
+      const errorMsg = e.data?.zodError ? Object.values(e.data.zodError).flat().join(', ') : (e.message || 'Erro desconhecido');
+      toast.error(`Erro ao atualizar: ${errorMsg}`);
+    },
   });
 
   const uploadPhotoMutation = trpc.admin.uploadPhoto.useMutation();
@@ -192,6 +200,10 @@ export default function AdminProductForm() {
   };
 
   const onSubmit = (data: FormData) => {
+    if (selectedRates.length === 0) {
+      toast.error('Selecione pelo menos uma opção de parcelamento');
+      return;
+    }
     const payload = {
       ...data,
       installmentConfig: selectedRates,
