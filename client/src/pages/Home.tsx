@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import * as React from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -7,7 +8,8 @@ import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Smartphone, Battery, Wrench, ShieldCheck, LogIn, Settings, ChevronRight, Zap } from "lucide-react";
+import { Smartphone, Battery, Wrench, ShieldCheck, LogIn, Settings, ChevronRight, Zap, Percent } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -65,13 +67,20 @@ type CatalogItem = {
 };
 
 function ProductCard({ item }: { item: CatalogItem }) {
+  const [showAllInstallments, setShowAllInstallments] = React.useState(false);
   const primaryPhoto = item.photos.find(p => p.isPrimary) ?? item.photos[0];
+  
+  // Encontrar a opção de 12x (destaque principal)
+  const installment12x = item.installmentOptions.find(opt => opt.installments === 12);
+  
+  // Encontrar a melhor opção (maior número de parcelas disponível)
   const bestInstallment = item.installmentOptions.reduce<typeof item.installmentOptions[0] | null>((best, opt) => {
     if (!best || opt.installments > best.installments) return opt;
     return best;
   }, null);
 
   return (
+    <>
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -121,29 +130,80 @@ function ProductCard({ item }: { item: CatalogItem }) {
         </Link>
 
         {/* Pricing */}
-        <div className="mt-4 pt-4 border-t border-border">
+        <div className="mt-4 pt-4 border-t border-border space-y-3">
           <div className="flex items-end justify-between">
             <div>
               <p className="text-xs text-muted-foreground mb-0.5">À vista</p>
               <p className="text-2xl font-bold text-primary">{formatCurrency(item.cashPrice)}</p>
             </div>
-            {bestInstallment && (
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground mb-0.5">Parcelado</p>
-                <p className="text-sm font-semibold text-foreground">
-                  {bestInstallment.installments}x {formatCurrency(bestInstallment.perInstallment)}
+            {installment12x && (
+              <div className="text-right bg-gradient-to-br from-amber-500/20 to-amber-600/20 border border-amber-500/40 rounded-lg px-3 py-2">
+                <p className="text-xs text-amber-300 font-medium mb-0.5">12x Destaque</p>
+                <p className="text-sm font-bold text-amber-400">
+                  {formatCurrency(installment12x.perInstallment)}
                 </p>
               </div>
             )}
           </div>
-          <Link href={`/produto/${item.id}`}>
-            <Button className="w-full mt-3 gap-2" size="sm">
-              Ver detalhes <ChevronRight className="w-4 h-4" />
-            </Button>
-          </Link>
+          
+          <div className="flex gap-2">
+            <Link href={`/produto/${item.id}`} className="flex-1">
+              <Button className="w-full gap-2" size="sm">
+                Ver detalhes <ChevronRight className="w-4 h-4" />
+              </Button>
+            </Link>
+            {item.installmentOptions.length > 1 && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-1"
+                onClick={() => setShowAllInstallments(true)}
+              >
+                <Percent className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Mais</span>
+              </Button>
+            )}
+          </div>
         </div>
+        
+        {/* Modal com todas as parcelas */}
+        <Dialog open={showAllInstallments} onOpenChange={setShowAllInstallments}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>{item.model} {item.storage} - Todas as parcelas</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {item.installmentOptions.map((opt, idx) => (
+                <div 
+                  key={idx}
+                  className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                    opt.installments === 12
+                      ? "bg-amber-500/15 border-amber-500/40 ring-1 ring-amber-500/30"
+                      : "bg-card border-border hover:border-primary/30"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-foreground">
+                      {opt.installments === 0 ? "Débito" : `${opt.installments}x`}
+                    </span>
+                    <span className="text-xs text-muted-foreground">({opt.rate}%)</span>
+                    {opt.installments === 12 && (
+                      <span className="text-xs bg-amber-500/30 text-amber-300 px-2 py-0.5 rounded-full font-medium">Destaque</span>
+                    )}
+                  </div>
+                  <span className={`font-bold ${
+                    opt.installments === 12 ? "text-amber-400" : "text-primary"
+                  }`}>
+                    {formatCurrency(opt.perInstallment)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </motion.div>
+    </>
   );
 }
 
@@ -304,7 +364,7 @@ export default function Home() {
                 {filtered.length} {filtered.length === 1 ? "produto disponível" : "produtos disponíveis"}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filtered.map(item => <ProductCard key={item.id} item={item} />)}
+                {filtered.map((item, idx) => <ProductCard key={item.id} item={item} />)}
               </div>
             </>
           )}
