@@ -1,0 +1,48 @@
+# iPhone Seminovos - TODO
+
+## Banco de Dados & API
+- [x] Schema: tabela `iphones` com todos os campos
+- [x] Schema: tabela `installment_rates` para taxas de parcelamento
+- [x] Schema: tabela `iphone_photos` para fotos dos produtos
+- [x] Migração SQL aplicada via webdev_execute_sql
+- [x] tRPC: CRUD de iPhones (admin)
+- [x] tRPC: listagem pública de iPhones
+- [x] tRPC: CRUD de taxas de parcelamento (admin)
+- [x] tRPC: upload de fotos para S3
+- [x] tRPC: delete de fotos
+
+## Painel Administrativo
+- [x] Layout com DashboardLayout e sidebar
+- [x] Página de listagem de produtos (admin)
+- [x] Formulário de cadastro/edição de iPhone
+  - [x] Campos: modelo, memória, saúde da bateria, reparos
+  - [x] Preço de custo
+  - [x] Ajuste de preço à vista (% ou valor fixo)
+  - [x] Seleção de parcelas e taxas
+  - [x] Upload de fotos (múltiplas, opcional)
+  - [x] Status (rascunho / publicado)
+- [x] Página de configuração de taxas de parcelamento
+- [x] Validações de formulário com react-hook-form + zod
+
+## Catálogo Público
+- [x] Página inicial com catálogo de iPhones
+- [x] Cards de produto com foto, modelo, memória, bateria, preço à vista e parcelado
+- [x] Página de detalhes do produto com galeria de fotos
+- [x] Filtros por modelo e memória
+- [x] Responsividade mobile-first
+
+## Design & UX
+- [x] Paleta de cores elegante (dark premium)
+- [x] Tipografia refinada (Google Fonts)
+- [x] Loading skeletons em todas as listagens
+- [x] Estados vazios com mensagens amigáveis
+- [x] Animações suaves com framer-motion
+- [x] Toasts de feedback para ações
+
+## Testes
+- [x] Testes vitest para rotas principais da API
+- [x] Teste de cálculo de preço à vista e parcelado
+
+## Entrega
+- [x] Checkpoint salvo
+- [x] Instruções de uso documentadas
