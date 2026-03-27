@@ -46,3 +46,6 @@
 ## Entrega
 - [x] Checkpoint salvo
 - [x] Instruções de uso documentadas
+
+## Atualizações
+- [x] Inserir 19 taxas de parcelamento (débito até 18x) no banco de dados

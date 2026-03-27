@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO installment_rates (installments, rate, isActive, createdAt, updatedAt) VALUES\n(0, 2.00, true, NOW(), NOW()),\n(1, 4.50, true, NOW(), NOW()),\n(2, 5.00, true, NOW(), NOW()),\n(3, 6.50, true, NOW(), NOW()),\n(4, 6.50, true, NOW(), NOW()),\n(5, 8.50, true, NOW(), NOW()),\n(6, 8.50, true, NOW(), NOW()),\n(7, 10.00, true, NOW(), NOW()),\n(8, 10.00, true, NOW(), NOW()),\n(9, 12.50, true, NOW(), NOW()),\n(10, 12.50, true, NOW(), NOW()),\n(11, 14.00, true, NOW(), NOW()),\n(12, 14.00, true, NOW(), NOW()),\n(13, 18.00, true, NOW(), NOW()),\n(14, 18.00, true, NOW(), NOW()),\n(15, 18.00, true, NOW(), NOW()),\n(16, 20.00, true, NOW(), NOW()),\n(17, 20.00, true, NOW(), NOW()),\n(18, 22.00, true, NOW(), NOW());",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway05.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2dFZGzF1SvdYTjh.root --database g2oZZXeaRxGwLSxQQYjLvP --execute INSERT INTO installment_rates (installments, rate, isActive, createdAt, updatedAt) VALUES\n(0, 2.00, true, NOW(), NOW()),\n(1, 4.50, true, NOW(), NOW()),\n(2, 5.00, true, NOW(), NOW()),\n(3, 6.50, true, NOW(), NOW()),\n(4, 6.50, true, NOW(), NOW()),\n(5, 8.50, true, NOW(), NOW()),\n(6, 8.50, true, NOW(), NOW()),\n(7, 10.00, true, NOW(), NOW()),\n(8, 10.00, true, NOW(), NOW()),\n(9, 12.50, true, NOW(), NOW()),\n(10, 12.50, true, NOW(), NOW()),\n(11, 14.00, true, NOW(), NOW()),\n(12, 14.00, true, NOW(), NOW()),\n(13, 18.00, true, NOW(), NOW()),\n(14, 18.00, true, NOW(), NOW()),\n(15, 18.00, true, NOW(), NOW()),\n(16, 20.00, true, NOW(), NOW()),\n(17, 20.00, true, NOW(), NOW()),\n(18, 22.00, true, NOW(), NOW());",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 565
+}
