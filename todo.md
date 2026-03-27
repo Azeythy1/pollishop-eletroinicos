@@ -51,4 +51,3 @@
 - [x] Inserir 19 taxas de parcelamento (débito até 18x) no banco de dados
 - [x] Destaque visual para parcela de 12x no card do produto
 - [x] Modal/drawer com todas as opções de parcelamento
-- [x] BUG: Botão salvar não está funcionando (corrigido: preventDefault em botões auxiliares, logging adicionado)

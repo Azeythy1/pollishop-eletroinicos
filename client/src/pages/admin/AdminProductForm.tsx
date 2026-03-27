@@ -103,7 +103,6 @@ export default function AdminProductForm() {
       batteryHealth: 85,
       status: "draft",
     },
-    mode: 'onBlur',
   });
 
   const costPrice = watch("costPrice") || 0;
@@ -193,17 +192,13 @@ export default function AdminProductForm() {
   };
 
   const onSubmit = (data: FormData) => {
-    console.log('[AdminProductForm] Form submitted with data:', data);
     const payload = {
       ...data,
       installmentConfig: selectedRates,
     };
-    console.log('[AdminProductForm] Payload to send:', payload);
     if (isEditing && productId) {
-      console.log('[AdminProductForm] Updating product:', productId);
       updateMutation.mutate({ id: productId, data: payload });
     } else {
-      console.log('[AdminProductForm] Creating new product');
       createMutation.mutate(payload);
     }
   };
@@ -237,10 +232,7 @@ export default function AdminProductForm() {
         </div>
       </div>
 
-      <form onSubmit={(e) => {
-        console.log('[AdminProductForm] Form onSubmit triggered');
-        handleSubmit(onSubmit)(e);
-      }} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Basic Info */}
         <div className="rounded-xl border border-border bg-card p-6 space-y-5">
           <h2 className="font-semibold text-foreground">Informações do Produto</h2>
@@ -465,7 +457,7 @@ export default function AdminProductForm() {
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
                   <button
                     type="button"
-                    onClick={(e) => { e.preventDefault(); handleSetPrimary(idx); }}
+                    onClick={() => handleSetPrimary(idx)}
                     className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${photo.isPrimary ? "bg-primary text-primary-foreground" : "bg-white/20 text-white hover:bg-primary hover:text-primary-foreground"}`}
                     title="Definir como principal"
                   >
@@ -473,7 +465,7 @@ export default function AdminProductForm() {
                   </button>
                   <button
                     type="button"
-                    onClick={(e) => { e.preventDefault(); handlePhotoRemove(idx); }}
+                    onClick={() => handlePhotoRemove(idx)}
                     className="w-7 h-7 rounded-full bg-destructive/80 text-white flex items-center justify-center hover:bg-destructive"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -520,17 +512,7 @@ export default function AdminProductForm() {
             <Link href="/admin/produtos" className="flex-1">
               <Button type="button" variant="outline" className="w-full">Cancelar</Button>
             </Link>
-            <Button 
-              type="submit" 
-              className="flex-1 gap-2" 
-              disabled={isPending}
-              onClick={(e) => {
-                console.log('[AdminProductForm] Save button clicked, errors:', errors);
-                if (Object.keys(errors).length > 0) {
-                  toast.error('Verifique os erros no formulário');
-                }
-              }}
-            >
+            <Button type="submit" className="flex-1 gap-2" disabled={isPending}>
               {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
               {isPending ? "Salvando..." : isEditing ? "Salvar alterações" : "Criar produto"}
             </Button>
