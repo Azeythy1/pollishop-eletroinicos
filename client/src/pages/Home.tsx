@@ -278,65 +278,55 @@ export default function Home() {
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
         </div>
         
-        <div className="container relative py-12 md:py-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-            {/* Left: Text and Logo */}
+        <div className="container relative py-16 md:py-24">
+          <div className="flex flex-col items-center justify-center text-center space-y-8">
+            {/* Logo Banner */}
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
-              className="space-y-6"
-            >
-              {/* Logo */}
-              <div className="flex items-center gap-4">
-                <img
-                  src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/pollishop-logo-final_71148b25.png"
-                  alt="PolliShop Logo"
-                  className="w-32 h-32 object-contain drop-shadow-2xl"
-                />
-              </div>
-              
-              <div className="space-y-3">
-                <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-                  PolliShop
-                  <span className="block text-slate-400 text-2xl md:text-3xl font-light mt-1">Eletrônicos</span>
-                </h1>
-                <p className="text-lg text-slate-300 max-w-lg">
-                  Os melhores iPhones seminovos com qualidade garantida e preços competitivos.
-                </p>
-              </div>
-              
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="flex flex-wrap gap-4 pt-4"
-              >
-                {[
-                  { icon: ShieldCheck, label: "Qualidade verificada" },
-                  { icon: Battery, label: "Bateria informada" },
-                  { icon: Wrench, label: "Reparos documentados" },
-                ].map(({ icon: Icon, label }) => (
-                  <div key={label} className="flex items-center gap-2 text-sm text-slate-300">
-                    <Icon className="w-4 h-4 text-primary" />
-                    {label}
-                  </div>
-                ))}
-              </motion.div>
-            </motion.div>
-            
-            {/* Right: iPhone Image */}
-            <motion.div
-              initial={{ opacity: 0, x: 30, scale: 0.9 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
               className="flex justify-center"
             >
               <img
-                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/iphones-fan-banner-FfUEe4azkrCZn5LG2rPmff.webp"
-                alt="iPhones em leque"
-                className="w-full max-w-md h-auto drop-shadow-2xl"
+                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/pollishop-logo-final_71148b25.png"
+                alt="PolliShop Logo"
+                className="w-48 h-48 md:w-64 md:h-64 object-contain drop-shadow-2xl"
               />
+            </motion.div>
+            
+            {/* Text Content */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="space-y-4 max-w-2xl"
+            >
+              <h1 className="text-5xl md:text-6xl font-bold text-white tracking-tight">
+                PolliShop
+                <span className="block text-slate-400 text-3xl md:text-4xl font-light mt-2">Eletrônicos</span>
+              </h1>
+              <p className="text-lg md:text-xl text-slate-300">
+                Os melhores iPhones seminovos com qualidade garantida e preços competitivos.
+              </p>
+            </motion.div>
+            
+            {/* Trust Badges */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="flex flex-wrap justify-center gap-6 pt-4"
+            >
+              {[
+                { icon: ShieldCheck, label: "Qualidade verificada" },
+                { icon: Battery, label: "Bateria informada" },
+                { icon: Wrench, label: "Reparos documentados" },
+              ].map(({ icon: Icon, label }) => (
+                <div key={label} className="flex items-center gap-2 text-sm text-slate-300">
+                  <Icon className="w-4 h-4 text-primary" />
+                  {label}
+                </div>
+              ))}
             </motion.div>
           </div>
         </div>
