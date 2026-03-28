@@ -52,3 +52,4 @@
 - [x] Destaque visual para parcela de 12x no card do produto
 - [x] Modal/drawer com todas as opções de parcelamento
 - [x] Banner hero com imagens de iPhones em leque e logo PolliShop VGA
+- [x] Integrar logo PolliShop e atualizar nome para "PolliShop Eletrônicos"

@@ -239,12 +239,14 @@ export default function Home() {
         <div className="container">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Smartphone className="w-4 h-4 text-primary-foreground" />
-              </div>
+              <img
+                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/pollishop-logo_145f0bf8.png"
+                alt="PolliShop"
+                className="w-10 h-10 object-contain"
+              />
               <div>
-                <span className="font-bold text-foreground text-lg">iPhone</span>
-                <span className="font-light text-primary ml-1">Seminovos</span>
+                <span className="font-bold text-foreground text-sm">PolliShop</span>
+                <span className="font-light text-slate-400 text-xs block">Eletrônicos</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -285,10 +287,19 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               className="space-y-6"
             >
+              {/* Logo */}
+              <div className="flex items-center gap-4">
+                <img
+                  src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/pollishop-logo_145f0bf8.png"
+                  alt="PolliShop Logo"
+                  className="w-24 h-24 object-contain drop-shadow-lg"
+                />
+              </div>
+              
               <div className="space-y-3">
-                <h1 className="text-5xl md:text-6xl font-bold text-white tracking-tight">
+                <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
                   PolliShop
-                  <span className="block text-primary mt-2">VGA</span>
+                  <span className="block text-slate-400 text-2xl md:text-3xl font-light mt-1">Eletrônicos</span>
                 </h1>
                 <p className="text-lg text-slate-300 max-w-lg">
                   Os melhores iPhones seminovos com qualidade garantida e preços competitivos.
