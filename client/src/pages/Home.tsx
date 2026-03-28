@@ -240,7 +240,7 @@ export default function Home() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <img
-                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/pollishop-logo_145f0bf8.png"
+                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/pollishop-logo-final_71148b25.png"
                 alt="PolliShop"
                 className="w-10 h-10 object-contain"
               />
@@ -290,9 +290,9 @@ export default function Home() {
               {/* Logo */}
               <div className="flex items-center gap-4">
                 <img
-                  src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/pollishop-logo_145f0bf8.png"
+                  src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/pollishop-logo-final_71148b25.png"
                   alt="PolliShop Logo"
-                  className="w-24 h-24 object-contain drop-shadow-lg"
+                  className="w-32 h-32 object-contain drop-shadow-2xl"
                 />
               </div>
               
