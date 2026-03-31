@@ -249,28 +249,23 @@ export default function Home() {
       </header>
 
       {/* Hero Banner */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-white border-b border-border">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-primary rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary rounded-full blur-3xl" />
-        </div>
+      <section className="relative overflow-hidden bg-background border-b border-border">
+        {/* Full Width Banner */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+          className="w-full"
+        >
+          <img
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/pollishop-banner-horizontal-EmVCMa2HqgGkuVdYoEMtTS.webp"
+            alt="PolliShop Banner"
+            className="w-full h-auto object-cover"
+          />
+        </motion.div>
         
-        <div className="container relative py-16 md:py-24">
-          <div className="flex flex-col items-center justify-center text-center space-y-8">
-            {/* Logo Banner */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8 }}
-              className="flex justify-center"
-            >
-              <img
-                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/pollishop-logo-final_71148b25.png"
-                alt="PolliShop Logo"
-                className="w-48 h-48 md:w-64 md:h-64 object-contain drop-shadow-lg"
-              />
-            </motion.div>
-            
+        <div className="container relative py-12 md:py-16">
+          <div className="flex flex-col items-center justify-center text-center space-y-6">
             {/* Text Content */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -278,10 +273,6 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="space-y-4 max-w-2xl"
             >
-              <h1 className="text-5xl md:text-6xl font-bold text-foreground tracking-tight">
-                PolliShop
-                <span className="block text-muted-foreground text-3xl md:text-4xl font-light mt-2">Eletrônicos</span>
-              </h1>
               <p className="text-lg md:text-xl text-muted-foreground">
                 Os melhores iPhones seminovos com qualidade garantida e preços competitivos.
               </p>

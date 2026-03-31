@@ -57,3 +57,6 @@
 - [x] Ajustar cards de produto com miniatura, nome e descrição
 - [x] Criar botão "Parcelar" com modal de opções 2x-18x
 - [x] Paleta de cores: preto, branco, cinza, azul escuro, metálico
+- [x] Expandir logo na horizontal (full width)
+- [x] Mesclar logo com fundo branco
+- [x] Aplicar paleta de cores mais clara em todo o app
