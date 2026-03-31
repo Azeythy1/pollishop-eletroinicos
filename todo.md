@@ -53,3 +53,7 @@
 - [x] Modal/drawer com todas as opções de parcelamento
 - [x] Banner hero com imagens de iPhones em leque e logo PolliShop VGA
 - [x] Integrar logo PolliShop e atualizar nome para "PolliShop Eletrônicos"
+- [x] Mudar tema para branco (marketplace style)
+- [x] Ajustar cards de produto com miniatura, nome e descrição
+- [x] Criar botão "Parcelar" com modal de opções 2x-18x
+- [x] Paleta de cores: preto, branco, cinza, azul escuro, metálico

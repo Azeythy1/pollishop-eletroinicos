@@ -1,4 +1,3 @@
-import { useState, useMemo } from "react";
 import * as React from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -10,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Smartphone, Battery, Wrench, ShieldCheck, LogIn, Settings, ChevronRight, Zap, Percent } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useMemo } from "react";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -17,12 +17,11 @@ function formatCurrency(value: number) {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl border border-border bg-card overflow-hidden animate-pulse">
-      <div className="aspect-[4/3] bg-muted shimmer" />
-      <div className="p-5 space-y-3">
-        <div className="h-5 bg-muted rounded w-3/4 shimmer" />
-        <div className="h-4 bg-muted rounded w-1/2 shimmer" />
-        <div className="h-4 bg-muted rounded w-2/3 shimmer" />
+    <div className="rounded-lg border border-border bg-card overflow-hidden animate-pulse">
+      <div className="aspect-square bg-muted shimmer" />
+      <div className="p-4 space-y-3">
+        <div className="h-4 bg-muted rounded w-3/4 shimmer" />
+        <div className="h-3 bg-muted rounded w-1/2 shimmer" />
         <div className="h-8 bg-muted rounded w-full shimmer mt-4" />
       </div>
     </div>
@@ -30,7 +29,7 @@ function SkeletonCard() {
 }
 
 function BatteryBadge({ health }: { health: number }) {
-  const color = health >= 85 ? "text-emerald-400" : health >= 70 ? "text-yellow-400" : "text-red-400";
+  const color = health >= 85 ? "text-green-600" : health >= 70 ? "text-yellow-600" : "text-red-600";
   return (
     <span className={`flex items-center gap-1 text-xs font-medium ${color}`}>
       <Battery className="w-3.5 h-3.5" />
@@ -41,9 +40,9 @@ function BatteryBadge({ health }: { health: number }) {
 
 function ConditionBadge({ condition }: { condition: string }) {
   const map: Record<string, { label: string; class: string }> = {
-    excelente: { label: "Excelente", class: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
-    bom: { label: "Bom", class: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
-    regular: { label: "Regular", class: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
+    excelente: { label: "Excelente", class: "bg-green-100 text-green-700 border-green-300" },
+    bom: { label: "Bom", class: "bg-blue-100 text-blue-700 border-blue-300" },
+    regular: { label: "Regular", class: "bg-yellow-100 text-yellow-700 border-yellow-300" },
   };
   const cfg = map[condition] ?? map.bom;
   return (
@@ -72,12 +71,6 @@ function ProductCard({ item }: { item: CatalogItem }) {
   
   // Encontrar a opção de 12x (destaque principal)
   const installment12x = item.installmentOptions.find(opt => opt.installments === 12);
-  
-  // Encontrar a melhor opção (maior número de parcelas disponível)
-  const bestInstallment = item.installmentOptions.reduce<typeof item.installmentOptions[0] | null>((best, opt) => {
-    if (!best || opt.installments > best.installments) return opt;
-    return best;
-  }, null);
 
   return (
     <>
@@ -85,11 +78,11 @@ function ProductCard({ item }: { item: CatalogItem }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="group rounded-2xl border border-border bg-card overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 flex flex-col"
+      className="group rounded-lg border border-border bg-card overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-md flex flex-col h-full"
     >
-      {/* Photo */}
+      {/* Photo - Marketplace style */}
       <Link href={`/produto/${item.id}`} className="block">
-        <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+        <div className="aspect-square bg-muted relative overflow-hidden">
           {primaryPhoto ? (
             <img
               src={primaryPhoto.url}
@@ -97,80 +90,65 @@ function ProductCard({ item }: { item: CatalogItem }) {
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Smartphone className="w-16 h-16 text-muted-foreground/30" />
+            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+              <Smartphone className="w-12 h-12 text-gray-300" />
             </div>
           )}
-          <div className="absolute top-3 left-3">
+          <div className="absolute top-2 right-2">
             <ConditionBadge condition={item.condition} />
           </div>
         </div>
       </Link>
 
-      {/* Content */}
-      <div className="p-5 flex flex-col flex-1">
-        <Link href={`/produto/${item.id}`} className="block flex-1">
-          <h3 className="font-semibold text-foreground text-lg leading-tight group-hover:text-primary transition-colors">
+      {/* Content - Marketplace style */}
+      <div className="p-4 flex flex-col flex-1">
+        <Link href={`/produto/${item.id}`} className="block flex-1 mb-3">
+          <h3 className="font-semibold text-foreground text-sm leading-tight group-hover:text-primary transition-colors line-clamp-2">
             {item.model}
           </h3>
-          <div className="flex items-center gap-3 mt-2">
-            <Badge variant="secondary" className="text-xs font-medium">{item.storage}</Badge>
-            {item.color && <span className="text-xs text-muted-foreground">{item.color}</span>}
-          </div>
-
-          <div className="flex items-center gap-4 mt-3">
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{item.storage} • {item.color || 'Sem cor'}</p>
+          <div className="flex items-center gap-2 mt-2">
             <BatteryBadge health={item.batteryHealth} />
             {item.repairs && (
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Wrench className="w-3.5 h-3.5" />
-                Com reparos
+                <Wrench className="w-3 h-3" />
+                Reparos
               </span>
             )}
           </div>
         </Link>
 
-        {/* Pricing */}
-        <div className="mt-4 pt-4 border-t border-border space-y-3">
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground mb-0.5">À vista</p>
-              <p className="text-2xl font-bold text-primary">{formatCurrency(item.cashPrice)}</p>
-            </div>
-            {installment12x && (
-              <div className="text-right bg-gradient-to-br from-amber-500/20 to-amber-600/20 border border-amber-500/40 rounded-lg px-3 py-2">
-                <p className="text-xs text-amber-300 font-medium mb-0.5">12x Destaque</p>
-                <p className="text-sm font-bold text-amber-400">
-                  {formatCurrency(installment12x.perInstallment)}
-                </p>
-              </div>
-            )}
+        {/* Pricing - Marketplace style */}
+        <div className="space-y-3 border-t border-border pt-3">
+          <div>
+            <p className="text-xs text-muted-foreground mb-0.5">À vista</p>
+            <p className="text-xl font-bold text-primary">{formatCurrency(item.cashPrice)}</p>
           </div>
           
-          <div className="flex gap-2">
-            <Link href={`/produto/${item.id}`} className="flex-1">
-              <Button className="w-full gap-2" size="sm">
-                Ver detalhes <ChevronRight className="w-4 h-4" />
-              </Button>
-            </Link>
-            {item.installmentOptions.length > 1 && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-1"
-                onClick={() => setShowAllInstallments(true)}
-              >
-                <Percent className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Mais</span>
-              </Button>
-            )}
-          </div>
+          {installment12x && (
+            <div className="bg-blue-50 border border-blue-200 rounded px-2.5 py-2">
+              <p className="text-xs text-blue-600 font-medium mb-0.5">12x</p>
+              <p className="text-sm font-bold text-blue-700">
+                {formatCurrency(installment12x.perInstallment)}
+              </p>
+            </div>
+          )}
+          
+          <Button 
+            className="w-full gap-2 bg-primary hover:bg-primary/90 text-white" 
+            size="sm"
+            onClick={() => setShowAllInstallments(true)}
+          >
+            <Zap className="w-4 h-4" />
+            Parcelar
+          </Button>
         </div>
         
         {/* Modal com todas as parcelas */}
         <Dialog open={showAllInstallments} onOpenChange={setShowAllInstallments}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle>{item.model} {item.storage} - Todas as parcelas</DialogTitle>
+              <DialogTitle className="text-foreground">{item.model} {item.storage} - Parcelamento</DialogTitle>
             </DialogHeader>
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {item.installmentOptions.map((opt, idx) => (
@@ -178,7 +156,7 @@ function ProductCard({ item }: { item: CatalogItem }) {
                   key={idx}
                   className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
                     opt.installments === 12
-                      ? "bg-amber-500/15 border-amber-500/40 ring-1 ring-amber-500/30"
+                      ? "bg-blue-50 border-blue-300 ring-1 ring-blue-300"
                       : "bg-card border-border hover:border-primary/30"
                   }`}
                 >
@@ -188,11 +166,11 @@ function ProductCard({ item }: { item: CatalogItem }) {
                     </span>
                     <span className="text-xs text-muted-foreground">({opt.rate}%)</span>
                     {opt.installments === 12 && (
-                      <span className="text-xs bg-amber-500/30 text-amber-300 px-2 py-0.5 rounded-full font-medium">Destaque</span>
+                      <span className="text-xs bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full font-medium">Destaque</span>
                     )}
                   </div>
                   <span className={`font-bold ${
-                    opt.installments === 12 ? "text-amber-400" : "text-primary"
+                    opt.installments === 12 ? "text-blue-700" : "text-primary"
                   }`}>
                     {formatCurrency(opt.perInstallment)}
                   </span>
@@ -225,15 +203,14 @@ export default function Home() {
 
   const filtered = useMemo(() => {
     if (!items) return [];
-    return items.filter(i => {
-      if (filterModel !== "all" && i.model !== filterModel) return false;
-      if (filterStorage !== "all" && i.storage !== filterStorage) return false;
-      return true;
-    });
+    return items.filter(i => 
+      (filterModel === "all" || i.model === filterModel) &&
+      (filterStorage === "all" || i.storage === filterStorage)
+    );
   }, [items, filterModel, filterStorage]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="container">
@@ -246,7 +223,7 @@ export default function Home() {
               />
               <div>
                 <span className="font-bold text-foreground text-sm">PolliShop</span>
-                <span className="font-light text-slate-400 text-xs block">Eletrônicos</span>
+                <span className="font-light text-muted-foreground text-xs block">Eletrônicos</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -272,10 +249,10 @@ export default function Home() {
       </header>
 
       {/* Hero Banner */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-white border-b border-border">
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary rounded-full blur-3xl" />
         </div>
         
         <div className="container relative py-16 md:py-24">
@@ -290,7 +267,7 @@ export default function Home() {
               <img
                 src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/pollishop-logo-final_71148b25.png"
                 alt="PolliShop Logo"
-                className="w-48 h-48 md:w-64 md:h-64 object-contain drop-shadow-2xl"
+                className="w-48 h-48 md:w-64 md:h-64 object-contain drop-shadow-lg"
               />
             </motion.div>
             
@@ -301,11 +278,11 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="space-y-4 max-w-2xl"
             >
-              <h1 className="text-5xl md:text-6xl font-bold text-white tracking-tight">
+              <h1 className="text-5xl md:text-6xl font-bold text-foreground tracking-tight">
                 PolliShop
-                <span className="block text-slate-400 text-3xl md:text-4xl font-light mt-2">Eletrônicos</span>
+                <span className="block text-muted-foreground text-3xl md:text-4xl font-light mt-2">Eletrônicos</span>
               </h1>
-              <p className="text-lg md:text-xl text-slate-300">
+              <p className="text-lg md:text-xl text-muted-foreground">
                 Os melhores iPhones seminovos com qualidade garantida e preços competitivos.
               </p>
             </motion.div>
@@ -322,7 +299,7 @@ export default function Home() {
                 { icon: Battery, label: "Bateria informada" },
                 { icon: Wrench, label: "Reparos documentados" },
               ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-2 text-sm text-slate-300">
+                <div key={label} className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Icon className="w-4 h-4 text-primary" />
                   {label}
                 </div>
@@ -337,9 +314,9 @@ export default function Home() {
         <div className="container">
           {/* Filters */}
           {!isLoading && items && items.length > 0 && (
-            <div className="flex flex-wrap gap-3 mb-8">
+            <div className="flex flex-wrap gap-3 mb-8 pt-8">
               <Select value={filterModel} onValueChange={setFilterModel}>
-                <SelectTrigger className="w-48 bg-card border-border">
+                <SelectTrigger className="w-40 bg-card border-border">
                   <SelectValue placeholder="Modelo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -366,7 +343,7 @@ export default function Home() {
 
           {/* Loading */}
           {isLoading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-8">
               {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
             </div>
           )}
@@ -385,7 +362,7 @@ export default function Home() {
           {/* Grid */}
           {!isLoading && filtered.length > 0 && (
             <>
-              <p className="text-sm text-muted-foreground mb-6">
+              <p className="text-sm text-muted-foreground mb-6 pt-8">
                 {filtered.length} {filtered.length === 1 ? "produto disponível" : "produtos disponíveis"}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -397,9 +374,9 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border py-8">
+      <footer className="border-t border-border py-8 mt-auto">
         <div className="container text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} iPhone Seminovos · Todos os direitos reservados</p>
+          <p>© {new Date().getFullYear()} PolliShop Eletrônicos · Todos os direitos reservados</p>
         </div>
       </footer>
     </div>
