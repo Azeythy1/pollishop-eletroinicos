@@ -62,3 +62,8 @@
 - [x] Aplicar paleta de cores mais clara em todo o app
 - [x] Organizar modal de parcelamento em ordem crescente (2x, 3x... 18x)
 - [x] Selecionar todas as opções de parcelamento por padrão ao criar novo produto
+- [x] Colocar logo branca no header
+- [x] Remover logo azul do banner
+- [x] Implementar carrinho de compras (adicionar/remover produtos, atualizar quantidade)
+- [x] Integrar métodos de pagamento (débito/crédito/PIX)
+- [x] Encaminhar pedido para WhatsApp (35998782791)

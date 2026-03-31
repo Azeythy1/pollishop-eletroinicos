@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -7,9 +7,10 @@ import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Smartphone, Battery, Wrench, ShieldCheck, LogIn, Settings, ChevronRight, Zap, Percent } from "lucide-react";
+import { Smartphone, Battery, Wrench, ShieldCheck, LogIn, Settings, ChevronRight, Zap, Percent, ShoppingCart, X, MessageCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -65,11 +66,13 @@ type CatalogItem = {
   photos: Array<{ id: number; url: string; isPrimary: boolean }>;
 };
 
-function ProductCard({ item }: { item: CatalogItem }) {
+type CartItem = CatalogItem & { cartQuantity: number; selectedInstallments: number };
+
+function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (item: CatalogItem, installments: number) => void }) {
   const [showAllInstallments, setShowAllInstallments] = React.useState(false);
+  const [selectedInstallments, setSelectedInstallments] = React.useState(12);
   const primaryPhoto = item.photos.find(p => p.isPrimary) ?? item.photos[0];
   
-  // Encontrar a opção de 12x (destaque principal)
   const installment12x = item.installmentOptions.find(opt => opt.installments === 12);
 
   return (
@@ -78,110 +81,190 @@ function ProductCard({ item }: { item: CatalogItem }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="group rounded-lg border border-border bg-card overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-md flex flex-col h-full"
+      className="rounded-lg border border-border bg-card overflow-hidden hover:shadow-lg transition-shadow"
     >
-      {/* Photo - Marketplace style */}
-      <Link href={`/produto/${item.id}`} className="block">
-        <div className="aspect-square bg-muted relative overflow-hidden">
-          {primaryPhoto ? (
-            <img
-              src={primaryPhoto.url}
-              alt={`${item.model} ${item.storage}`}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-100">
-              <Smartphone className="w-12 h-12 text-gray-300" />
-            </div>
-          )}
-          <div className="absolute top-2 right-2">
-            <ConditionBadge condition={item.condition} />
+      {/* Image */}
+      <div className="relative aspect-square bg-muted overflow-hidden">
+        {primaryPhoto ? (
+          <img src={primaryPhoto.url} alt={item.model} className="w-full h-full object-cover" />
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <Smartphone className="w-12 h-12 text-muted-foreground/30" />
           </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-4 space-y-3">
+        {/* Model & Storage */}
+        <div>
+          <h3 className="font-bold text-foreground text-sm">{item.model}</h3>
+          <p className="text-xs text-muted-foreground">{item.storage} {item.color && `• ${item.color}`}</p>
         </div>
-      </Link>
 
-      {/* Content - Marketplace style */}
-      <div className="p-4 flex flex-col flex-1">
-        <Link href={`/produto/${item.id}`} className="block flex-1 mb-3">
-          <h3 className="font-semibold text-foreground text-sm leading-tight group-hover:text-primary transition-colors line-clamp-2">
-            {item.model}
-          </h3>
-          <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{item.storage} • {item.color || 'Sem cor'}</p>
-          <div className="flex items-center gap-2 mt-2">
-            <BatteryBadge health={item.batteryHealth} />
-            {item.repairs && (
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Wrench className="w-3 h-3" />
-                Reparos
-              </span>
-            )}
-          </div>
-        </Link>
+        {/* Condition & Battery */}
+        <div className="flex items-center justify-between gap-2">
+          <ConditionBadge condition={item.condition} />
+          <BatteryBadge health={item.batteryHealth} />
+        </div>
 
-        {/* Pricing - Marketplace style */}
-        <div className="space-y-3 border-t border-border pt-3">
-          <div>
-            <p className="text-xs text-muted-foreground mb-0.5">À vista</p>
-            <p className="text-xl font-bold text-primary">{formatCurrency(item.cashPrice)}</p>
+        {/* Price */}
+        <div className="space-y-1">
+          <p className="text-xs text-muted-foreground">À vista</p>
+          <p className="font-bold text-lg text-foreground">{formatCurrency(item.cashPrice)}</p>
+        </div>
+
+        {/* 12x Highlight */}
+        {installment12x && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
+            <p className="text-xs text-blue-600 font-medium">12x de</p>
+            <p className="font-bold text-blue-700">{formatCurrency(installment12x.perInstallment)}</p>
           </div>
-          
-          {installment12x && (
-            <div className="bg-blue-50 border border-blue-200 rounded px-2.5 py-2">
-              <p className="text-xs text-blue-600 font-medium mb-0.5">12x</p>
-              <p className="text-sm font-bold text-blue-700">
-                {formatCurrency(installment12x.perInstallment)}
-              </p>
-            </div>
-          )}
-          
+        )}
+
+        {/* Buttons */}
+        <div className="flex gap-2 pt-2">
           <Button 
-            className="w-full gap-2 bg-primary hover:bg-primary/90 text-white" 
-            size="sm"
+            variant="outline" 
+            size="sm" 
+            className="flex-1"
             onClick={() => setShowAllInstallments(true)}
           >
-            <Zap className="w-4 h-4" />
             Parcelar
           </Button>
+          <Button 
+            size="sm" 
+            className="flex-1 bg-primary hover:bg-primary/90"
+            onClick={() => {
+              onAddToCart(item, selectedInstallments);
+              toast.success(`${item.model} adicionado ao carrinho!`);
+            }}
+          >
+            <ShoppingCart className="w-4 h-4 mr-1" />
+            Comprar
+          </Button>
         </div>
-        
-        {/* Modal com todas as parcelas */}
-        <Dialog open={showAllInstallments} onOpenChange={setShowAllInstallments}>
-          <DialogContent className="max-w-sm">
-            <DialogHeader>
-              <DialogTitle className="text-foreground">{item.model} {item.storage} - Parcelamento</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {item.installmentOptions.sort((a, b) => a.installments - b.installments).map((opt, idx) => (
-                <div 
-                  key={idx}
-                  className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
-                    opt.installments === 12
-                      ? "bg-blue-50 border-blue-300 ring-1 ring-blue-300"
-                      : "bg-card border-border hover:border-primary/30"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-foreground">
-                      {opt.installments === 0 ? "Débito" : `${opt.installments}x`}
-                    </span>
-                    <span className="text-xs text-muted-foreground">({opt.rate}%)</span>
-                    {opt.installments === 12 && (
-                      <span className="text-xs bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full font-medium">Destaque</span>
-                    )}
-                  </div>
-                  <span className={`font-bold ${
-                    opt.installments === 12 ? "text-blue-700" : "text-primary"
-                  }`}>
-                    {formatCurrency(opt.perInstallment)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </motion.div>
+
+    {/* Installments Modal */}
+    <Dialog open={showAllInstallments} onOpenChange={setShowAllInstallments}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-foreground">{item.model} {item.storage} - Parcelamento</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {item.installmentOptions.sort((a, b) => a.installments - b.installments).map((opt, idx) => (
+            <button
+              key={idx}
+              onClick={() => {
+                setSelectedInstallments(opt.installments);
+                setShowAllInstallments(false);
+              }}
+              className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all text-left ${
+                opt.installments === 12
+                  ? "bg-blue-50 border-blue-300 ring-1 ring-blue-300"
+                  : "bg-card border-border hover:border-primary/30"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-foreground">
+                  {opt.installments === 0 ? "Débito" : `${opt.installments}x`}
+                </span>
+                <span className="text-xs text-muted-foreground">({opt.rate}%)</span>
+                {opt.installments === 12 && (
+                  <span className="text-xs bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full font-medium">Destaque</span>
+                )}
+              </div>
+              <span className={`font-bold ${
+                opt.installments === 12 ? "text-blue-700" : "text-primary"
+              }`}>
+                {formatCurrency(opt.perInstallment)}
+              </span>
+            </button>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
     </>
+  );
+}
+
+function CartDrawer({ items, onRemove, onCheckout, isOpen, onClose }: { 
+  items: CartItem[]; 
+  onRemove: (id: number) => void;
+  onCheckout: () => void;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const total = items.reduce((sum, item) => {
+    const opt = item.installmentOptions.find(o => o.installments === item.selectedInstallments);
+    return sum + (opt?.total ?? 0);
+  }, 0);
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-foreground">Carrinho de Compras</DialogTitle>
+        </DialogHeader>
+        
+        {items.length === 0 ? (
+          <div className="text-center py-8">
+            <ShoppingCart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-muted-foreground">Seu carrinho está vazio</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Items */}
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {items.map(item => {
+                const opt = item.installmentOptions.find(o => o.installments === item.selectedInstallments);
+                return (
+                  <div key={item.id} className="flex gap-3 p-3 rounded-lg bg-muted/50 border border-border">
+                    <div className="flex-1">
+                      <p className="font-medium text-sm text-foreground">{item.model} {item.storage}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.selectedInstallments === 0 ? "Débito" : `${item.selectedInstallments}x`}
+                      </p>
+                      <p className="font-bold text-primary text-sm mt-1">{formatCurrency(opt?.total ?? 0)}</p>
+                    </div>
+                    <button
+                      onClick={() => onRemove(item.id)}
+                      className="text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Total */}
+            <div className="border-t border-border pt-3">
+              <div className="flex justify-between items-center mb-4">
+                <span className="font-semibold text-foreground">Total:</span>
+                <span className="font-bold text-lg text-primary">{formatCurrency(total)}</span>
+              </div>
+
+              {/* Payment Methods */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Método de pagamento:</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start gap-2"
+                  onClick={onCheckout}
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Finalizar via WhatsApp
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -190,6 +273,8 @@ export default function Home() {
   const { data: items, isLoading } = trpc.catalog.list.useQuery();
   const [filterModel, setFilterModel] = useState<string>("all");
   const [filterStorage, setFilterStorage] = useState<string>("all");
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [showCart, setShowCart] = useState(false);
 
   const models = useMemo(() => {
     if (!items) return [];
@@ -209,6 +294,42 @@ export default function Home() {
     );
   }, [items, filterModel, filterStorage]);
 
+  const handleAddToCart = (item: CatalogItem, installments: number) => {
+    setCartItems(prev => {
+      const existing = prev.find(c => c.id === item.id);
+      if (existing) {
+        return prev.map(c => c.id === item.id ? { ...c, cartQuantity: c.cartQuantity + 1, selectedInstallments: installments } : c);
+      }
+      return [...prev, { ...item, cartQuantity: 1, selectedInstallments: installments }];
+    });
+  };
+
+  const handleRemoveFromCart = (id: number) => {
+    setCartItems(prev => prev.filter(c => c.id !== id));
+  };
+
+  const handleCheckout = () => {
+    if (cartItems.length === 0) return;
+
+    const total = cartItems.reduce((sum, item) => {
+      const opt = item.installmentOptions.find(o => o.installments === item.selectedInstallments);
+      return sum + (opt?.total ?? 0);
+    }, 0);
+
+    const itemsList = cartItems.map(item => {
+      const opt = item.installmentOptions.find(o => o.installments === item.selectedInstallments);
+      return `${item.model} ${item.storage} - ${item.selectedInstallments === 0 ? "Débito" : `${item.selectedInstallments}x`} - ${formatCurrency(opt?.total ?? 0)}`;
+    }).join("%0A");
+
+    const message = `Olá! Gostaria de fazer uma compra:%0A%0A${itemsList}%0A%0ATotal: ${formatCurrency(total)}`;
+    const whatsappUrl = `https://wa.me/5535998782791?text=${message}`;
+    window.open(whatsappUrl, "_blank");
+    
+    setCartItems([]);
+    setShowCart(false);
+    toast.success("Redirecionando para WhatsApp...");
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
@@ -217,7 +338,7 @@ export default function Home() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <img
-                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/pollishop-logo-final_71148b25.png"
+                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/WhatsAppImage2026-03-28at14.00.40_5c1d0c42.jpeg"
                 alt="PolliShop"
                 className="w-10 h-10 object-contain"
               />
@@ -227,6 +348,17 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowCart(true)}
+                className="relative p-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {cartItems.length > 0 && (
+                  <span className="absolute top-0 right-0 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {cartItems.length}
+                  </span>
+                )}
+              </button>
               {user?.role === "admin" && (
                 <Link href="/admin">
                   <Button variant="outline" size="sm" className="gap-2">
@@ -250,29 +382,18 @@ export default function Home() {
 
       {/* Hero Banner */}
       <section className="relative overflow-hidden bg-background border-b border-border">
-        {/* Full Width Banner */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className="w-full"
-        >
-          <img
-            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP/pollishop-banner-horizontal-EmVCMa2HqgGkuVdYoEMtTS.webp"
-            alt="PolliShop Banner"
-            className="w-full h-auto object-cover"
-          />
-        </motion.div>
-        
-        <div className="container relative py-12 md:py-16">
+        <div className="container relative py-16 md:py-20">
           <div className="flex flex-col items-center justify-center text-center space-y-6">
             {/* Text Content */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.8 }}
               className="space-y-4 max-w-2xl"
             >
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+                PolliShop Eletrônicos
+              </h1>
               <p className="text-lg md:text-xl text-muted-foreground">
                 Os melhores iPhones seminovos com qualidade garantida e preços competitivos.
               </p>
@@ -282,7 +403,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.3 }}
               className="flex flex-wrap justify-center gap-6 pt-4"
             >
               {[
@@ -352,24 +473,23 @@ export default function Home() {
 
           {/* Grid */}
           {!isLoading && filtered.length > 0 && (
-            <>
-              <p className="text-sm text-muted-foreground mb-6 pt-8">
-                {filtered.length} {filtered.length === 1 ? "produto disponível" : "produtos disponíveis"}
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filtered.map((item, idx) => <ProductCard key={item.id} item={item} />)}
-              </div>
-            </>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-8">
+              {filtered.map(item => (
+                <ProductCard key={item.id} item={item} onAddToCart={handleAddToCart} />
+              ))}
+            </div>
           )}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-8 mt-auto">
-        <div className="container text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} PolliShop Eletrônicos · Todos os direitos reservados</p>
-        </div>
-      </footer>
+      {/* Cart Drawer */}
+      <CartDrawer 
+        items={cartItems} 
+        onRemove={handleRemoveFromCart}
+        onCheckout={handleCheckout}
+        isOpen={showCart}
+        onClose={() => setShowCart(false)}
+      />
     </div>
   );
 }
