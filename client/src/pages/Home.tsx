@@ -151,7 +151,7 @@ function ProductCard({ item }: { item: CatalogItem }) {
               <DialogTitle className="text-foreground">{item.model} {item.storage} - Parcelamento</DialogTitle>
             </DialogHeader>
             <div className="space-y-2 max-h-96 overflow-y-auto">
-              {item.installmentOptions.map((opt, idx) => (
+              {item.installmentOptions.sort((a, b) => a.installments - b.installments).map((opt, idx) => (
                 <div 
                   key={idx}
                   className={`flex items-center justify-between p-3 rounded-lg border transition-all ${

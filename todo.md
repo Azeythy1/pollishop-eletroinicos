@@ -60,3 +60,5 @@
 - [x] Expandir logo na horizontal (full width)
 - [x] Mesclar logo com fundo branco
 - [x] Aplicar paleta de cores mais clara em todo o app
+- [x] Organizar modal de parcelamento em ordem crescente (2x, 3x... 18x)
+- [x] Selecionar todas as opções de parcelamento por padrão ao criar novo produto

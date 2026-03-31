@@ -139,8 +139,10 @@ export default function AdminProductForm() {
       const config = existingProduct.installmentConfig as Array<{ installments: number; rateId: number }> | null;
       if (config) setSelectedRates(config);
       setPhotos(existingProduct.photos.map(p => ({ id: p.id, url: p.url, isPrimary: p.isPrimary })));
+    } else if (!isEditing && rates && rates.length > 0) {
+      setSelectedRates(rates.map(r => ({ installments: r.installments, rateId: r.id })));
     }
-  }, [existingProduct, setValue]);
+  }, [existingProduct, setValue, isEditing, rates]);
 
   const uploadPendingPhotos = useCallback(async (iphoneId: number) => {
     const pending = photos.filter(p => p.file);
@@ -422,7 +424,7 @@ export default function AdminProductForm() {
             </h2>
             <p className="text-xs text-muted-foreground">Selecione quais opções de parcelamento serão exibidas para este produto.</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {rates.map(rate => {
+              {rates.sort((a, b) => a.installments - b.installments).map(rate => {
                 const isSelected = selectedRates.some(r => r.rateId === rate.id);
                 const installmentPrice = isNaN(cashPrice) ? 0 : cashPrice * (1 + rate.rate / 100) / rate.installments;
                 return (
