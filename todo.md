@@ -67,3 +67,5 @@
 - [x] Implementar carrinho de compras (adicionar/remover produtos, atualizar quantidade)
 - [x] Integrar métodos de pagamento (débito/crédito/PIX)
 - [x] Encaminhar pedido para WhatsApp (35998782791)
+- [x] Desvincular parcelamentos do carrinho
+- [x] Mover seleção de parcelas para checkout final via WhatsApp

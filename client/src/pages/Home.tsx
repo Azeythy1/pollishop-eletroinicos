@@ -4,10 +4,9 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Smartphone, Battery, Wrench, ShieldCheck, LogIn, Settings, ChevronRight, Zap, Percent, ShoppingCart, X, MessageCircle } from "lucide-react";
+import { Smartphone, Battery, Wrench, ShieldCheck, LogIn, Settings, ShoppingCart, X, MessageCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
@@ -66,11 +65,10 @@ type CatalogItem = {
   photos: Array<{ id: number; url: string; isPrimary: boolean }>;
 };
 
-type CartItem = CatalogItem & { cartQuantity: number; selectedInstallments: number };
+type CartItem = CatalogItem & { quantity: number };
 
-function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (item: CatalogItem, installments: number) => void }) {
+function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (item: CatalogItem) => void }) {
   const [showAllInstallments, setShowAllInstallments] = React.useState(false);
-  const [selectedInstallments, setSelectedInstallments] = React.useState(12);
   const primaryPhoto = item.photos.find(p => p.isPrimary) ?? item.photos[0];
   
   const installment12x = item.installmentOptions.find(opt => opt.installments === 12);
@@ -130,13 +128,13 @@ function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (i
             className="flex-1"
             onClick={() => setShowAllInstallments(true)}
           >
-            Parcelar
+            Ver parcelas
           </Button>
           <Button 
             size="sm" 
             className="flex-1 bg-primary hover:bg-primary/90"
             onClick={() => {
-              onAddToCart(item, selectedInstallments);
+              onAddToCart(item);
               toast.success(`${item.model} adicionado ao carrinho!`);
             }}
           >
@@ -151,20 +149,16 @@ function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (i
     <Dialog open={showAllInstallments} onOpenChange={setShowAllInstallments}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-foreground">{item.model} {item.storage} - Parcelamento</DialogTitle>
+          <DialogTitle className="text-foreground">{item.model} {item.storage} - Opções de Parcelamento</DialogTitle>
         </DialogHeader>
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {item.installmentOptions.sort((a, b) => a.installments - b.installments).map((opt, idx) => (
-            <button
+            <div
               key={idx}
-              onClick={() => {
-                setSelectedInstallments(opt.installments);
-                setShowAllInstallments(false);
-              }}
-              className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all text-left ${
+              className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
                 opt.installments === 12
                   ? "bg-blue-50 border-blue-300 ring-1 ring-blue-300"
-                  : "bg-card border-border hover:border-primary/30"
+                  : "bg-card border-border"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -181,7 +175,7 @@ function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (i
               }`}>
                 {formatCurrency(opt.perInstallment)}
               </span>
-            </button>
+            </div>
           ))}
         </div>
       </DialogContent>
@@ -197,10 +191,7 @@ function CartDrawer({ items, onRemove, onCheckout, isOpen, onClose }: {
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const total = items.reduce((sum, item) => {
-    const opt = item.installmentOptions.find(o => o.installments === item.selectedInstallments);
-    return sum + (opt?.total ?? 0);
-  }, 0);
+  const total = items.reduce((sum, item) => sum + item.cashPrice * item.quantity, 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -218,48 +209,42 @@ function CartDrawer({ items, onRemove, onCheckout, isOpen, onClose }: {
           <div className="space-y-4">
             {/* Items */}
             <div className="space-y-3 max-h-64 overflow-y-auto">
-              {items.map(item => {
-                const opt = item.installmentOptions.find(o => o.installments === item.selectedInstallments);
-                return (
-                  <div key={item.id} className="flex gap-3 p-3 rounded-lg bg-muted/50 border border-border">
-                    <div className="flex-1">
-                      <p className="font-medium text-sm text-foreground">{item.model} {item.storage}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.selectedInstallments === 0 ? "Débito" : `${item.selectedInstallments}x`}
-                      </p>
-                      <p className="font-bold text-primary text-sm mt-1">{formatCurrency(opt?.total ?? 0)}</p>
-                    </div>
-                    <button
-                      onClick={() => onRemove(item.id)}
-                      className="text-muted-foreground hover:text-destructive transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+              {items.map(item => (
+                <div key={item.id} className="flex gap-3 p-3 rounded-lg bg-muted/50 border border-border">
+                  <div className="flex-1">
+                    <p className="font-medium text-sm text-foreground">{item.model} {item.storage}</p>
+                    <p className="text-xs text-muted-foreground">Qtd: {item.quantity}</p>
+                    <p className="font-bold text-primary text-sm mt-1">{formatCurrency(item.cashPrice * item.quantity)}</p>
                   </div>
-                );
-              })}
+                  <button
+                    onClick={() => onRemove(item.id)}
+                    className="text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
             </div>
 
             {/* Total */}
             <div className="border-t border-border pt-3">
               <div className="flex justify-between items-center mb-4">
-                <span className="font-semibold text-foreground">Total:</span>
+                <span className="font-semibold text-foreground">Total (à vista):</span>
                 <span className="font-bold text-lg text-primary">{formatCurrency(total)}</span>
               </div>
 
-              {/* Payment Methods */}
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground mb-2">Método de pagamento:</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full justify-start gap-2"
-                  onClick={onCheckout}
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Finalizar via WhatsApp
-                </Button>
-              </div>
+              {/* Checkout Button */}
+              <Button 
+                size="sm" 
+                className="w-full bg-primary hover:bg-primary/90"
+                onClick={onCheckout}
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Finalizar Compra
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                Escolha as opções de parcelamento no WhatsApp
+              </p>
             </div>
           </div>
         )}
@@ -294,13 +279,13 @@ export default function Home() {
     );
   }, [items, filterModel, filterStorage]);
 
-  const handleAddToCart = (item: CatalogItem, installments: number) => {
+  const handleAddToCart = (item: CatalogItem) => {
     setCartItems(prev => {
       const existing = prev.find(c => c.id === item.id);
       if (existing) {
-        return prev.map(c => c.id === item.id ? { ...c, cartQuantity: c.cartQuantity + 1, selectedInstallments: installments } : c);
+        return prev.map(c => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c);
       }
-      return [...prev, { ...item, cartQuantity: 1, selectedInstallments: installments }];
+      return [...prev, { ...item, quantity: 1 }];
     });
   };
 
@@ -311,17 +296,13 @@ export default function Home() {
   const handleCheckout = () => {
     if (cartItems.length === 0) return;
 
-    const total = cartItems.reduce((sum, item) => {
-      const opt = item.installmentOptions.find(o => o.installments === item.selectedInstallments);
-      return sum + (opt?.total ?? 0);
-    }, 0);
+    const total = cartItems.reduce((sum, item) => sum + item.cashPrice * item.quantity, 0);
 
-    const itemsList = cartItems.map(item => {
-      const opt = item.installmentOptions.find(o => o.installments === item.selectedInstallments);
-      return `${item.model} ${item.storage} - ${item.selectedInstallments === 0 ? "Débito" : `${item.selectedInstallments}x`} - ${formatCurrency(opt?.total ?? 0)}`;
-    }).join("%0A");
+    const itemsList = cartItems.map(item => 
+      `${item.model} ${item.storage} (Qtd: ${item.quantity}) - ${formatCurrency(item.cashPrice * item.quantity)}`
+    ).join("%0A");
 
-    const message = `Olá! Gostaria de fazer uma compra:%0A%0A${itemsList}%0A%0ATotal: ${formatCurrency(total)}`;
+    const message = `Olá! Gostaria de fazer uma compra:%0A%0A${itemsList}%0A%0ATotal: ${formatCurrency(total)}%0A%0AQual opção de parcelamento você deseja?`;
     const whatsappUrl = `https://wa.me/5535998782791?text=${message}`;
     window.open(whatsappUrl, "_blank");
     
