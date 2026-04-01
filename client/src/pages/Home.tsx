@@ -242,9 +242,7 @@ function CartDrawer({ items, onRemove, onCheckout, isOpen, onClose }: {
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Finalizar Compra
               </Button>
-              <p className="text-xs text-muted-foreground text-center mt-2">
-                Escolha as opções de parcelamento no WhatsApp
-              </p>
+
             </div>
           </div>
         )}
@@ -302,7 +300,7 @@ export default function Home() {
       `${item.model} ${item.storage} (Qtd: ${item.quantity}) - ${formatCurrency(item.cashPrice * item.quantity)}`
     ).join("%0A");
 
-    const message = `Olá! Gostaria de fazer uma compra:%0A%0A${itemsList}%0A%0ATotal: ${formatCurrency(total)}%0A%0AQual opção de parcelamento você deseja?`;
+    const message = `Olá! Gostaria de fazer uma compra:%0A%0A${itemsList}%0A%0ATotal: ${formatCurrency(total)}`;
     const whatsappUrl = `https://wa.me/5535998782791?text=${message}`;
     window.open(whatsappUrl, "_blank");
     

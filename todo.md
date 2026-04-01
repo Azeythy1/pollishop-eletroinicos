@@ -69,3 +69,4 @@
 - [x] Encaminhar pedido para WhatsApp (35998782791)
 - [x] Desvincular parcelamentos do carrinho
 - [x] Mover seleção de parcelas para checkout final via WhatsApp
+- [x] Remover texto "Qual opção de parcelamento você deseja?" da mensagem WhatsApp
