@@ -70,3 +70,9 @@
 - [x] Desvincular parcelamentos do carrinho
 - [x] Mover seleção de parcelas para checkout final via WhatsApp
 - [x] Remover texto "Qual opção de parcelamento você deseja?" da mensagem WhatsApp
+
+## Categorias de Produtos
+- [x] Adicionar campo categoria no schema do banco de dados
+- [x] Implementar seleção de categoria no painel admin
+- [x] Criar barra de menu com ícones para 6 categorias (Smartphones, Tablet, Notebook, Computadores, Periféricos, Acessórios)
+- [x] Implementar filtro por categoria no catálogo público

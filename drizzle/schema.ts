@@ -56,8 +56,18 @@ export const iphoneModelEnum = mysqlEnum("model", [
   "iPhone 17 Pro Max",
 ]);
 
+export const categoryEnum = mysqlEnum("category", [
+  "Smartphones",
+  "Tablet",
+  "Notebook",
+  "Computadores",
+  "Periféricos",
+  "Acessórios",
+]);
+
 export const iphones = mysqlTable("iphones", {
   id: int("id").autoincrement().primaryKey(),
+  category: categoryEnum.default("Smartphones").notNull(),
   model: varchar("model", { length: 64 }).notNull(),
   storage: varchar("storage", { length: 16 }).notNull(), // 64GB, 128GB, 256GB, 512GB, 1TB
   color: varchar("color", { length: 64 }),
@@ -84,6 +94,7 @@ export const iphones = mysqlTable("iphones", {
 
 export type Iphone = typeof iphones.$inferSelect;
 export type InsertIphone = typeof iphones.$inferInsert;
+export type Category = "Smartphones" | "Tablet" | "Notebook" | "Computadores" | "Periféricos" | "Acessórios";
 
 export const iphonePhotos = mysqlTable("iphone_photos", {
   id: int("id").autoincrement().primaryKey(),

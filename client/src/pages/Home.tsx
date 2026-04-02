@@ -256,6 +256,7 @@ export default function Home() {
   const { data: items, isLoading } = trpc.catalog.list.useQuery();
   const [filterModel, setFilterModel] = useState<string>("all");
   const [filterStorage, setFilterStorage] = useState<string>("all");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
 
@@ -273,9 +274,10 @@ export default function Home() {
     if (!items) return [];
     return items.filter(i => 
       (filterModel === "all" || i.model === filterModel) &&
-      (filterStorage === "all" || i.storage === filterStorage)
+      (filterStorage === "all" || i.storage === filterStorage) &&
+      (filterCategory === "all" || i.category === filterCategory)
     );
-  }, [items, filterModel, filterStorage]);
+  }, [items, filterModel, filterStorage, filterCategory]);
 
   const handleAddToCart = (item: CatalogItem) => {
     setCartItems(prev => {
@@ -396,6 +398,35 @@ export default function Home() {
                 </div>
               ))}
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Category Menu */}
+      <section className="border-b border-border bg-card/50">
+        <div className="container">
+          <div className="flex gap-2 overflow-x-auto py-4 scrollbar-hide">
+            {[
+              { icon: Smartphone, label: "Smartphones" },
+              { icon: Battery, label: "Tablet" },
+              { icon: Wrench, label: "Notebook" },
+              { icon: ShieldCheck, label: "Computadores" },
+              { icon: Smartphone, label: "Periféricos" },
+              { icon: Battery, label: "Acessórios" },
+            ].map(({ icon: Icon, label }) => (
+              <button
+                key={label}
+                onClick={() => setFilterCategory(label)}
+                className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-colors whitespace-nowrap text-sm font-medium ${
+                  filterCategory === label
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       </section>

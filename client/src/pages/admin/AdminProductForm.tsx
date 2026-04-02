@@ -28,8 +28,10 @@ const IPHONE_MODELS = [
 
 const STORAGE_OPTIONS = ["64GB", "128GB", "256GB", "512GB", "1TB"];
 const COLORS = ["Preto", "Branco", "Azul", "Vermelho", "Verde", "Roxo", "Amarelo", "Rosa", "Prata", "Grafite", "Titanium", "Natural", "Outro"];
+const CATEGORIES = ["Smartphones", "Tablet", "Notebook", "Computadores", "Periféricos", "Acessórios"];
 
 const schema = z.object({
+  category: z.string().min(1, "Selecione a categoria"),
   model: z.string().min(1, "Selecione o modelo"),
   storage: z.string().min(1, "Selecione a memória"),
   color: z.string().optional(),
@@ -44,6 +46,7 @@ const schema = z.object({
 });
 
 type FormData = z.infer<typeof schema>;
+type Category = "Smartphones" | "Tablet" | "Notebook" | "Computadores" | "Periféricos" | "Acessórios";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -208,6 +211,7 @@ export default function AdminProductForm() {
     }
     const payload = {
       ...data,
+      category: data.category as "Smartphones" | "Tablet" | "Notebook" | "Computadores" | "Periféricos" | "Acessórios",
       installmentConfig: selectedRates,
     };
     if (isEditing && productId) {
@@ -252,6 +256,19 @@ export default function AdminProductForm() {
           <h2 className="font-semibold text-foreground">Informações do Produto</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Categoria *</Label>
+              <Select onValueChange={v => setValue("category", v)} value={watch("category")}>
+                <SelectTrigger className={errors.category ? "border-destructive" : ""}>
+                  <SelectValue placeholder="Selecione a categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {errors.category && <p className="text-xs text-destructive">{errors.category.message}</p>}
+            </div>
+
             <div className="space-y-2">
               <Label>Modelo *</Label>
               <Select onValueChange={v => setValue("model", v)} value={watch("model")}>

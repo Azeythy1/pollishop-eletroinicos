@@ -1,0 +1,1 @@
+ALTER TABLE `iphones` ADD `category` enum('Smartphones','Tablet','Notebook','Computadores','Periféricos','Acessórios') DEFAULT 'Smartphones' NOT NULL;

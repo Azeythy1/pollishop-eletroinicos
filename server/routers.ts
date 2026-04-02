@@ -47,6 +47,7 @@ function calcInstallmentPrice(cashPrice: number, rate: number, installments: num
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 const iphoneInput = z.object({
+  category: z.enum(["Smartphones", "Tablet", "Notebook", "Computadores", "Periféricos", "Acessórios"]).default("Smartphones"),
   model: z.string().min(1),
   storage: z.string().min(1),
   color: z.string().optional(),
@@ -96,6 +97,7 @@ export const appRouter = router({
         }
         result.push({
           id: item.id,
+          category: item.category,
           model: item.model,
           storage: item.storage,
           color: item.color,
@@ -179,6 +181,7 @@ export const appRouter = router({
     createIphone: adminProcedure.input(iphoneInput).mutation(async ({ input }) => {
       const cashPrice = calcCashPrice(input.costPrice, input.priceAdjustType, input.priceAdjustValue);
       await createIphone({
+        category: input.category as any,
         model: input.model,
         storage: input.storage,
         color: input.color ?? null,
