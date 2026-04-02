@@ -76,3 +76,7 @@
 - [x] Implementar seleção de categoria no painel admin
 - [x] Criar barra de menu com ícones para 6 categorias (Smartphones, Tablet, Notebook, Computadores, Periféricos, Acessórios)
 - [x] Implementar filtro por categoria no catálogo público
+
+## Correções & Manutenção
+- [x] Atualizar produtos existentes com categoria padrão (Smartphones)
+- [x] Garantir que futuras migrações não afetem o estoque de produtos
