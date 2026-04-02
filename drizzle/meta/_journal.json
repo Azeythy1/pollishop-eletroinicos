@@ -29,6 +29,13 @@
       "when": 1775100136719,
       "tag": "0003_cooing_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1775102891995,
+      "tag": "0004_robust_magdalene",
+      "breakpoints": true
     }
   ]
 }

@@ -25,37 +25,6 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// iPhone models enum
-export const iphoneModelEnum = mysqlEnum("model", [
-  "iPhone 11",
-  "iPhone 11 Pro",
-  "iPhone 11 Pro Max",
-  "iPhone 12",
-  "iPhone 12 Mini",
-  "iPhone 12 Pro",
-  "iPhone 12 Pro Max",
-  "iPhone 13",
-  "iPhone 13 Mini",
-  "iPhone 13 Pro",
-  "iPhone 13 Pro Max",
-  "iPhone 14",
-  "iPhone 14 Plus",
-  "iPhone 14 Pro",
-  "iPhone 14 Pro Max",
-  "iPhone 15",
-  "iPhone 15 Plus",
-  "iPhone 15 Pro",
-  "iPhone 15 Pro Max",
-  "iPhone 16",
-  "iPhone 16 Plus",
-  "iPhone 16 Pro",
-  "iPhone 16 Pro Max",
-  "iPhone 17",
-  "iPhone 17 Plus",
-  "iPhone 17 Pro",
-  "iPhone 17 Pro Max",
-]);
-
 export const categoryEnum = mysqlEnum("category", [
   "Smartphones",
   "Tablet",
@@ -68,25 +37,43 @@ export const categoryEnum = mysqlEnum("category", [
 export const iphones = mysqlTable("iphones", {
   id: int("id").autoincrement().primaryKey(),
   category: categoryEnum.default("Smartphones").notNull(),
+  
+  // Campos genéricos (todos os produtos)
   model: varchar("model", { length: 64 }).notNull(),
-  storage: varchar("storage", { length: 16 }).notNull(), // 64GB, 128GB, 256GB, 512GB, 1TB
   color: varchar("color", { length: 64 }),
-  batteryHealth: int("batteryHealth").notNull(), // percentage 0-100
-  repairs: text("repairs"), // description of repairs done
   condition: mysqlEnum("condition", ["excelente", "bom", "regular"]).default("bom").notNull(),
+  
+  // Campos Smartphones/Tablet
+  storage: varchar("storage", { length: 16 }), // 64GB, 128GB, 256GB, 512GB, 1TB
+  batteryHealth: int("batteryHealth"), // percentage 0-100
+  repairs: text("repairs"), // description of repairs done
+  
+  // Campos Notebook/Computadores
+  processor: varchar("processor", { length: 128 }), // Intel i5, AMD Ryzen 5, etc
+  ram: varchar("ram", { length: 32 }), // 8GB, 16GB, 32GB, etc
+  storageCapacity: varchar("storageCapacity", { length: 128 }), // SSD 256GB, HDD 1TB, etc
+  gpu: varchar("gpu", { length: 128 }), // NVIDIA GTX, Intel Iris, etc
+  powerSupply: varchar("powerSupply", { length: 64 }), // 500W, 650W, etc (Computadores)
+  screen: varchar("screen", { length: 64 }), // 15.6", 17", etc (Notebook)
+  
+  // Campos Periféricos/Acessórios
+  itemType: varchar("itemType", { length: 64 }), // mouse, teclado, monitor, capa, etc
+  brand: varchar("brand", { length: 64 }), // marca do produto
+  specifications: text("specifications"), // especificações adicionais
+  compatibility: varchar("compatibility", { length: 256 }), // compatibilidade (ex: iPhone 13-15)
 
   // Pricing
-  costPrice: decimal("costPrice", { precision: 10, scale: 2, mode: "number" }).notNull(), // visible only to admin
+  costPrice: decimal("costPrice", { precision: 10, scale: 2, mode: "number" }).notNull(),
   priceAdjustType: mysqlEnum("priceAdjustType", ["percentage", "fixed"]).default("percentage").notNull(),
-  priceAdjustValue: decimal("priceAdjustValue", { precision: 10, scale: 2, mode: "number" }).notNull(), // % or R$ added to cost
-  cashPrice: decimal("cashPrice", { precision: 10, scale: 2, mode: "number" }).notNull(), // calculated: cost + adjustment
+  priceAdjustValue: decimal("priceAdjustValue", { precision: 10, scale: 2, mode: "number" }).notNull(),
+  cashPrice: decimal("cashPrice", { precision: 10, scale: 2, mode: "number" }).notNull(),
 
   // Installment config: JSON array of { installments: number, rateId: number }
-  installmentConfig: json("installmentConfig"), // which installment options to show
+  installmentConfig: json("installmentConfig"),
 
   // Status
   status: mysqlEnum("status", ["draft", "published"]).default("draft").notNull(),
-  notes: text("notes"), // internal notes
+  notes: text("notes"),
 
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -111,8 +98,8 @@ export type InsertIphonePhoto = typeof iphonePhotos.$inferInsert;
 
 export const installmentRates = mysqlTable("installment_rates", {
   id: int("id").autoincrement().primaryKey(),
-  installments: int("installments").notNull(), // number of installments (2, 3, 4, ... 18)
-  rate: decimal("rate", { precision: 5, scale: 2, mode: "number" }).notNull(), // interest rate in %
+  installments: int("installments").notNull(),
+  rate: decimal("rate", { precision: 5, scale: 2, mode: "number" }).notNull(),
   isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

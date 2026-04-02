@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+"use client";
+
 import { useRoute, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,43 +11,99 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft, Upload, X, Star, Loader2, DollarSign, Percent, Calculator } from "lucide-react";
+import { ChevronLeft, Upload, X, Star, Loader2 } from "lucide-react";
 import { Link } from "wouter";
+import { useState, useEffect } from "react";
 
-const IPHONE_MODELS = [
-  "iPhone 11", "iPhone 11 Pro", "iPhone 11 Pro Max",
-  "iPhone 12", "iPhone 12 Mini", "iPhone 12 Pro", "iPhone 12 Pro Max",
-  "iPhone 13", "iPhone 13 Mini", "iPhone 13 Pro", "iPhone 13 Pro Max",
-  "iPhone 14", "iPhone 14 Plus", "iPhone 14 Pro", "iPhone 14 Pro Max",
-  "iPhone 15", "iPhone 15 Plus", "iPhone 15 Pro", "iPhone 15 Pro Max",
-  "iPhone 16", "iPhone 16 Plus", "iPhone 16 Pro", "iPhone 16 Pro Max",
-  "iPhone 17", "iPhone 17 Plus", "iPhone 17 Pro", "iPhone 17 Pro Max",
-];
-
-const STORAGE_OPTIONS = ["64GB", "128GB", "256GB", "512GB", "1TB"];
-const COLORS = ["Preto", "Branco", "Azul", "Vermelho", "Verde", "Roxo", "Amarelo", "Rosa", "Prata", "Grafite", "Titanium", "Natural", "Outro"];
 const CATEGORIES = ["Smartphones", "Tablet", "Notebook", "Computadores", "Periféricos", "Acessórios"];
+const COLORS = ["Preto", "Branco", "Azul", "Vermelho", "Verde", "Roxo", "Amarelo", "Rosa", "Prata", "Grafite", "Titanium", "Natural", "Outro"];
+const CONDITIONS = ["excelente", "bom", "regular"];
 
-const schema = z.object({
+// Schema base com passthrough para campos dinâmicos
+const baseSchema = z.object({
   category: z.string().min(1, "Selecione a categoria"),
-  model: z.string().min(1, "Selecione o modelo"),
-  storage: z.string().min(1, "Selecione a memória"),
   color: z.string().optional(),
-  batteryHealth: z.number().int().min(1).max(100),
-  repairs: z.string().optional(),
   condition: z.enum(["excelente", "bom", "regular"]),
   costPrice: z.number().positive("Preço de custo obrigatório"),
   priceAdjustType: z.enum(["percentage", "fixed"]),
   priceAdjustValue: z.number().min(0),
   status: z.enum(["draft", "published"]),
   notes: z.string().optional(),
+}).passthrough();
+
+// Schemas específicos por categoria
+const smartphoneSchema = baseSchema.extend({
+  model: z.string().min(1, "Selecione o modelo"),
+  storage: z.string().min(1, "Selecione a memória"),
+  batteryHealth: z.number().int().min(1).max(100),
+  repairs: z.string().optional(),
 });
 
-type FormData = z.infer<typeof schema>;
-type Category = "Smartphones" | "Tablet" | "Notebook" | "Computadores" | "Periféricos" | "Acessórios";
+const tabletSchema = baseSchema.extend({
+  model: z.string().min(1, "Selecione o modelo"),
+  storage: z.string().min(1, "Selecione a memória"),
+  batteryHealth: z.number().int().min(1).max(100),
+  repairs: z.string().optional(),
+});
+
+const notebookSchema = baseSchema.extend({
+  model: z.string().min(1, "Nome/Modelo obrigatório"),
+  brand: z.string().min(1, "Marca obrigatória"),
+  processor: z.string().min(1, "Processador obrigatório"),
+  ram: z.string().min(1, "RAM obrigatória"),
+  storageCapacity: z.string().min(1, "Armazenamento obrigatório"),
+  screen: z.string().min(1, "Tamanho de tela obrigatório"),
+  gpu: z.string().optional(),
+});
+
+const computerSchema = baseSchema.extend({
+  model: z.string().min(1, "Nome/Modelo obrigatório"),
+  brand: z.string().min(1, "Marca obrigatória"),
+  processor: z.string().min(1, "Processador obrigatório"),
+  ram: z.string().min(1, "RAM obrigatória"),
+  storageCapacity: z.string().min(1, "Armazenamento obrigatório"),
+  gpu: z.string().min(1, "GPU obrigatória"),
+  powerSupply: z.string().min(1, "Fonte obrigatória"),
+});
+
+const peripheralSchema = baseSchema.extend({
+  model: z.string().min(1, "Nome do produto obrigatório"),
+  brand: z.string().min(1, "Marca obrigatória"),
+  itemType: z.string().min(1, "Tipo obrigatório"),
+  specifications: z.string().optional(),
+});
+
+const accessorySchema = baseSchema.extend({
+  model: z.string().min(1, "Nome do produto obrigatório"),
+  itemType: z.string().min(1, "Tipo obrigatório"),
+  compatibility: z.string().min(1, "Compatibilidade obrigatória"),
+  specifications: z.string().optional(),
+});
+
+type FormData = Record<string, any>;
+
+type SubmitHandler = (data: any) => Promise<void>;
+
+function getSchemaForCategory(category: string) {
+  switch (category) {
+    case "Smartphones":
+      return smartphoneSchema;
+    case "Tablet":
+      return tabletSchema;
+    case "Notebook":
+      return notebookSchema;
+    case "Computadores":
+      return computerSchema;
+    case "Periféricos":
+      return peripheralSchema;
+    case "Acessórios":
+      return accessorySchema;
+    default:
+      return smartphoneSchema;
+  }
+}
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -65,9 +122,62 @@ export default function AdminProductForm() {
   );
   const { data: rates } = trpc.admin.getRatesPublic.useQuery();
 
+  const [selectedCategory, setSelectedCategory] = useState<string>("Smartphones");
   const [selectedRates, setSelectedRates] = useState<Array<{ installments: number; rateId: number }>>([]);
   const [photos, setPhotos] = useState<Array<{ id?: number; url: string; isPrimary: boolean; file?: File; uploading?: boolean }>>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
+
+  const form = useForm<FormData>({
+    mode: "onBlur",
+    defaultValues: {
+      category: "Smartphones",
+      condition: "bom",
+      priceAdjustType: "percentage",
+      status: "draft",
+    },
+  });
+
+  // Atualizar schema quando categoria muda
+  useEffect(() => {
+    form.clearErrors();
+    // Revalidar com novo schema
+    const schema = getSchemaForCategory(selectedCategory);
+    form.trigger();
+  }, [selectedCategory, form]);
+
+  // Carregar dados do produto existente
+  useEffect(() => {
+    if (existingProduct) {
+      setSelectedCategory(existingProduct.category as string);
+      form.reset({
+        category: existingProduct.category as string,
+        model: existingProduct.model || "",
+        storage: existingProduct.storage || "",
+        batteryHealth: existingProduct.batteryHealth || 85,
+        repairs: existingProduct.repairs || "",
+        color: existingProduct.color || "",
+        condition: (existingProduct.condition as any) || "bom",
+        costPrice: existingProduct.costPrice as number,
+        priceAdjustType: (existingProduct.priceAdjustType as any) || "percentage",
+        priceAdjustValue: existingProduct.priceAdjustValue as number,
+        status: (existingProduct.status as any) || "draft",
+        notes: existingProduct.notes || "",
+        brand: existingProduct.brand || "",
+        processor: existingProduct.processor || "",
+        ram: existingProduct.ram || "",
+        storageCapacity: existingProduct.storageCapacity || "",
+        gpu: existingProduct.gpu || "",
+        powerSupply: existingProduct.powerSupply || "",
+        screen: existingProduct.screen || "",
+        itemType: existingProduct.itemType || "",
+        specifications: existingProduct.specifications || "",
+        compatibility: existingProduct.compatibility || "",
+      });
+      if (existingProduct.photos) {
+        setPhotos(existingProduct.photos.map((p: any) => ({ id: p.id, url: p.url, isPrimary: p.isPrimary })));
+      }
+    }
+  }, [existingProduct, form]);
 
   const createMutation = trpc.admin.createIphone.useMutation({
     onSuccess: async (newProduct) => {
@@ -101,455 +211,492 @@ export default function AdminProductForm() {
     },
   });
 
-  const uploadPhotoMutation = trpc.admin.uploadPhoto.useMutation();
-  const deletePhotoMutation = trpc.admin.deletePhoto.useMutation();
-  const setPrimaryMutation = trpc.admin.setPrimaryPhoto.useMutation();
+  const uploadPendingPhotos = async (iPhoneId: number) => {
+    const filesToUpload = photos.filter(p => p.file);
+    if (!filesToUpload.length) return;
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      condition: "bom",
-      priceAdjustType: "percentage",
-      priceAdjustValue: 0,
-      batteryHealth: 85,
-      status: "draft",
-    },
-  });
-
-  const costPrice = watch("costPrice") || 0;
-  const adjustType = watch("priceAdjustType");
-  const adjustValue = watch("priceAdjustValue") || 0;
-  const batteryHealth = watch("batteryHealth") || 85;
-
-  const cashPrice = adjustType === "percentage"
-    ? costPrice * (1 + adjustValue / 100)
-    : costPrice + adjustValue;
-
-  // Load existing product data
-  useEffect(() => {
-    if (existingProduct) {
-      setValue("model", existingProduct.model);
-      setValue("storage", existingProduct.storage);
-      setValue("color", existingProduct.color ?? "");
-      setValue("batteryHealth", existingProduct.batteryHealth);
-      setValue("repairs", existingProduct.repairs ?? "");
-      setValue("condition", existingProduct.condition);
-      setValue("costPrice", existingProduct.costPrice);
-      setValue("priceAdjustType", existingProduct.priceAdjustType);
-      setValue("priceAdjustValue", existingProduct.priceAdjustValue);
-      setValue("status", existingProduct.status);
-      setValue("notes", existingProduct.notes ?? "");
-      const config = existingProduct.installmentConfig as Array<{ installments: number; rateId: number }> | null;
-      if (config) setSelectedRates(config);
-      setPhotos(existingProduct.photos.map(p => ({ id: p.id, url: p.url, isPrimary: p.isPrimary })));
-    } else if (!isEditing && rates && rates.length > 0) {
-      setSelectedRates(rates.map(r => ({ installments: r.installments, rateId: r.id })));
-    }
-  }, [existingProduct, setValue, isEditing, rates]);
-
-  const uploadPendingPhotos = useCallback(async (iphoneId: number) => {
-    const pending = photos.filter(p => p.file);
-    if (pending.length === 0) return;
     setUploadingPhotos(true);
-    for (const photo of pending) {
-      if (!photo.file) continue;
-      const reader = new FileReader();
-      await new Promise<void>((resolve) => {
-        reader.onload = async (e) => {
-          const base64 = (e.target?.result as string).split(",")[1];
-          await uploadPhotoMutation.mutateAsync({
-            iphoneId,
-            filename: photo.file!.name,
-            mimeType: photo.file!.type,
-            base64,
-            isPrimary: photo.isPrimary,
-          });
-          resolve();
-        };
-        reader.readAsDataURL(photo.file!);
-      });
-    }
-    setUploadingPhotos(false);
-  }, [photos, uploadPhotoMutation]);
+    try {
+      for (const photo of filesToUpload) {
+        if (photo.file) {
+          const formData = new FormData();
+          formData.append('file', photo.file);
+          formData.append('iphoneId', iPhoneId.toString());
+          formData.append('isPrimary', photo.isPrimary.toString());
 
-  const handlePhotoAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    const newPhotos = files.map((file, i) => ({
-      url: URL.createObjectURL(file),
-      isPrimary: photos.length === 0 && i === 0,
-      file,
-    }));
-    setPhotos(prev => [...prev, ...newPhotos]);
-    e.target.value = "";
+          const response = await fetch('/api/trpc/admin.uploadPhoto?batch=1', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error('Upload failed');
+          }
+        }
+      }
+      setPhotos(photos.filter(p => !p.file));
+    } catch (err) {
+      toast.error('Erro ao fazer upload de fotos');
+    } finally {
+      setUploadingPhotos(false);
+    }
   };
 
-  const handlePhotoRemove = async (idx: number) => {
-    const photo = photos[idx];
-    if (photo.id && productId) {
-      await deletePhotoMutation.mutateAsync({ photoId: photo.id });
-      utils.admin.getIphone.invalidate({ id: productId });
-    }
-    setPhotos(prev => {
-      const next = prev.filter((_, i) => i !== idx);
-      if (photo.isPrimary && next.length > 0) next[0].isPrimary = true;
-      return next;
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setPhotos([...photos, { url: event.target?.result as string, isPrimary: photos.length === 0, file }]);
+      };
+      reader.readAsDataURL(file);
     });
   };
 
-  const handleSetPrimary = async (idx: number) => {
-    const photo = photos[idx];
-    if (photo.id && productId) {
-      await setPrimaryMutation.mutateAsync({ iphoneId: productId, photoId: photo.id });
-    }
-    setPhotos(prev => prev.map((p, i) => ({ ...p, isPrimary: i === idx })));
+  const handleRemovePhoto = (index: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    setPhotos(photos.filter((_, i) => i !== index));
   };
 
-  const onSubmit = (data: FormData) => {
-    if (selectedRates.length === 0) {
-      toast.error('Selecione pelo menos uma opção de parcelamento');
+  const handleSetPrimary = (index: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    setPhotos(photos.map((p, i) => ({ ...p, isPrimary: i === index })));
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+    form.setValue("category", value);
+  };
+
+  const onSubmit = async (data: any) => {
+    console.log('[AdminProductForm] Submitting:', data);
+    
+    // Validar com schema apropriado
+    const schema = getSchemaForCategory(selectedCategory);
+    try {
+      await schema.parseAsync(data);
+    } catch (err: any) {
+      console.error('Validation error:', err);
+      toast.error('Erro de validação: ' + err.message);
       return;
     }
-    const payload = {
-      ...data,
-      category: data.category as "Smartphones" | "Tablet" | "Notebook" | "Computadores" | "Periféricos" | "Acessórios",
-      installmentConfig: selectedRates,
-    };
+    
+    const installmentConfig = selectedRates.map(r => ({
+      installments: r.installments,
+      rateId: r.rateId,
+    }));
+
     if (isEditing && productId) {
-      updateMutation.mutate({ id: productId, data: payload });
+      updateMutation.mutate({
+        id: productId,
+        data: {
+          ...data,
+          installmentConfig,
+        },
+      });
     } else {
-      createMutation.mutate(payload);
+      createMutation.mutate({
+        ...data,
+        installmentConfig,
+      });
     }
   };
 
-  const isPending = createMutation.isPending || updateMutation.isPending || uploadingPhotos;
-
-  if (isEditing && loadingProduct) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+  if (loadingProduct) {
+    return <div className="flex items-center justify-center h-96"><Loader2 className="animate-spin" /></div>;
   }
 
+  const isSaving = createMutation.isPending || updateMutation.isPending;
+  const costPrice = Number(form.watch("costPrice")) || 0;
+  const adjustType = form.watch("priceAdjustType") || "percentage";
+  const adjustValue = Number(form.watch("priceAdjustValue")) || 0;
+  const cashPrice = adjustType === "percentage" ? costPrice * (1 + adjustValue / 100) : costPrice + adjustValue;
+
+  const getErrorMessage = (error: any): string => {
+    if (!error) return "";
+    if (typeof error.message === "string") return error.message;
+    return String(error.message || "");
+  };
+
   return (
-    <div className="max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-4xl mx-auto">
         <Link href="/admin/produtos">
-          <Button variant="ghost" size="icon" className="w-9 h-9">
-            <ChevronLeft className="w-5 h-5" />
+          <Button variant="ghost" size="sm" className="mb-6">
+            <ChevronLeft className="w-4 h-4 mr-2" /> Voltar
           </Button>
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {isEditing ? "Editar Produto" : "Novo Produto"}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-0.5">
-            {isEditing ? "Atualize as informações do iPhone" : "Cadastre um novo iPhone seminovo"}
-          </p>
-        </div>
-      </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Basic Info */}
-        <div className="rounded-xl border border-border bg-card p-6 space-y-5">
-          <h2 className="font-semibold text-foreground">Informações do Produto</h2>
+        <div className="bg-white rounded-lg shadow-sm p-8">
+          <h1 className="text-3xl font-bold mb-8">{isEditing ? "Editar Produto" : "Novo Produto"}</h1>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Categoria *</Label>
-              <Select onValueChange={v => setValue("category", v)} value={watch("category")}>
-                <SelectTrigger className={errors.category ? "border-destructive" : ""}>
-                  <SelectValue placeholder="Selecione a categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              {errors.category && <p className="text-xs text-destructive">{errors.category.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Modelo *</Label>
-              <Select onValueChange={v => setValue("model", v)} value={watch("model")}>
-                <SelectTrigger className={errors.model ? "border-destructive" : ""}>
-                  <SelectValue placeholder="Selecione o modelo" />
-                </SelectTrigger>
-                <SelectContent className="max-h-64">
-                  {IPHONE_MODELS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              {errors.model && <p className="text-xs text-destructive">{errors.model.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Memória *</Label>
-              <Select onValueChange={v => setValue("storage", v)} value={watch("storage")}>
-                <SelectTrigger className={errors.storage ? "border-destructive" : ""}>
-                  <SelectValue placeholder="Selecione a memória" />
-                </SelectTrigger>
-                <SelectContent>
-                  {STORAGE_OPTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              {errors.storage && <p className="text-xs text-destructive">{errors.storage.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Cor</Label>
-              <Select onValueChange={v => setValue("color", v)} value={watch("color")}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a cor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {COLORS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Condição *</Label>
-              <Select onValueChange={v => setValue("condition", v as "excelente" | "bom" | "regular")} value={watch("condition")}>
-                <SelectTrigger>
+          <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-8">
+            {/* Categoria */}
+            <div>
+              <Label className="text-base font-semibold mb-3 block">Categoria *</Label>
+              <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="excelente">Excelente</SelectItem>
-                  <SelectItem value="bom">Bom</SelectItem>
-                  <SelectItem value="regular">Regular</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Battery Health */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Saúde da Bateria *</Label>
-              <span className={`text-sm font-bold ${batteryHealth >= 85 ? "text-emerald-400" : batteryHealth >= 70 ? "text-yellow-400" : "text-red-400"}`}>
-                {batteryHealth}%
-              </span>
-            </div>
-            <Slider
-              min={1}
-              max={100}
-              step={1}
-              value={[batteryHealth]}
-              onValueChange={([v]) => setValue("batteryHealth", v)}
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>1%</span><span>50%</span><span>100%</span>
-            </div>
-          </div>
-
-          {/* Repairs */}
-          <div className="space-y-2">
-            <Label>Reparos Realizados</Label>
-            <Textarea
-              placeholder="Descreva os reparos realizados (ex: troca de tela, bateria nova...)"
-              className="resize-none"
-              rows={3}
-              {...register("repairs")}
-            />
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label>Notas Internas</Label>
-            <Textarea
-              placeholder="Observações internas (não visíveis ao público)"
-              className="resize-none"
-              rows={2}
-              {...register("notes")}
-            />
-          </div>
-        </div>
-
-        {/* Pricing */}
-        <div className="rounded-xl border border-border bg-card p-6 space-y-5">
-          <h2 className="font-semibold text-foreground flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-primary" />
-            Precificação
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Preço de Custo (R$) *</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0,00"
-                  className={`pl-9 ${errors.costPrice ? "border-destructive" : ""}`}
-                  {...register("costPrice", { valueAsNumber: true })}
-                />
-              </div>
-              {errors.costPrice && <p className="text-xs text-destructive">{errors.costPrice.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Tipo de Ajuste</Label>
-              <Select onValueChange={v => setValue("priceAdjustType", v as "percentage" | "fixed")} value={adjustType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="percentage">Porcentagem (%)</SelectItem>
-                  <SelectItem value="fixed">Valor fixo (R$)</SelectItem>
+                  {CATEGORIES.map(cat => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>{adjustType === "percentage" ? "Margem (%)" : "Acréscimo (R$)"}</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  {adjustType === "percentage" ? <Percent className="w-3.5 h-3.5" /> : <span className="text-sm">R$</span>}
-                </span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0"
-                  className="pl-9"
-                  {...register("priceAdjustValue", { valueAsNumber: true })}
-                />
+            {/* Campos dinâmicos por categoria */}
+            {(selectedCategory === "Smartphones" || selectedCategory === "Tablet") && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Modelo *</Label>
+                    <Input {...form.register("model")} placeholder="iPhone 15 Pro" />
+                    {form.formState.errors.model && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.model)}</p>}
+                  </div>
+                  <div>
+                    <Label>Memória *</Label>
+                    <Select value={form.watch("storage") || ""} onValueChange={(v) => form.setValue("storage", v)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["64GB", "128GB", "256GB", "512GB", "1TB"].map(s => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.storage && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.storage)}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Saúde da Bateria (%) *</Label>
+                    <Slider value={[form.watch("batteryHealth") || 85]} onValueChange={(v) => form.setValue("batteryHealth", v[0])} min={1} max={100} step={1} />
+                    <p className="text-sm text-gray-600 mt-2">{form.watch("batteryHealth")}%</p>
+                  </div>
+                  <div>
+                    <Label>Cor</Label>
+                    <Select value={form.watch("color") || ""} onValueChange={(v) => form.setValue("color", v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COLORS.map(c => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Reparos Realizados</Label>
+                  <Textarea {...form.register("repairs")} placeholder="Ex: Trocado vidro traseiro, bateria nova..." />
+                </div>
+              </>
+            )}
+
+            {selectedCategory === "Notebook" && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Modelo/Nome *</Label>
+                    <Input {...form.register("model")} placeholder="Notebook XYZ" />
+                    {form.formState.errors.model && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.model)}</p>}
+                  </div>
+                  <div>
+                    <Label>Marca *</Label>
+                    <Input {...form.register("brand")} placeholder="Dell, Lenovo, HP..." />
+                    {form.formState.errors.brand && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.brand)}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Processador *</Label>
+                    <Input {...form.register("processor")} placeholder="Intel i5 12th Gen" />
+                    {form.formState.errors.processor && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.processor)}</p>}
+                  </div>
+                  <div>
+                    <Label>RAM *</Label>
+                    <Input {...form.register("ram")} placeholder="16GB DDR4" />
+                    {form.formState.errors.ram && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.ram)}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Armazenamento *</Label>
+                    <Input {...form.register("storageCapacity")} placeholder="SSD 512GB" />
+                    {form.formState.errors.storageCapacity && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.storageCapacity)}</p>}
+                  </div>
+                  <div>
+                    <Label>Tela *</Label>
+                    <Input {...form.register("screen")} placeholder="15.6 polegadas" />
+                    {form.formState.errors.screen && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.screen)}</p>}
+                  </div>
+                </div>
+
+                <div>
+                  <Label>GPU</Label>
+                  <Input {...form.register("gpu")} placeholder="NVIDIA GTX 1650" />
+                </div>
+              </>
+            )}
+
+            {selectedCategory === "Computadores" && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Modelo/Nome *</Label>
+                    <Input {...form.register("model")} placeholder="PC Gamer XYZ" />
+                    {form.formState.errors.model && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.model)}</p>}
+                  </div>
+                  <div>
+                    <Label>Marca *</Label>
+                    <Input {...form.register("brand")} placeholder="Marca do gabinete" />
+                    {form.formState.errors.brand && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.brand)}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Processador *</Label>
+                    <Input {...form.register("processor")} placeholder="Intel i7 13th Gen" />
+                    {form.formState.errors.processor && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.processor)}</p>}
+                  </div>
+                  <div>
+                    <Label>RAM *</Label>
+                    <Input {...form.register("ram")} placeholder="32GB DDR5" />
+                    {form.formState.errors.ram && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.ram)}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Armazenamento *</Label>
+                    <Input {...form.register("storageCapacity")} placeholder="SSD 1TB + HDD 2TB" />
+                    {form.formState.errors.storageCapacity && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.storageCapacity)}</p>}
+                  </div>
+                  <div>
+                    <Label>GPU *</Label>
+                    <Input {...form.register("gpu")} placeholder="NVIDIA RTX 4070" />
+                    {form.formState.errors.gpu && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.gpu)}</p>}
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Fonte *</Label>
+                  <Input {...form.register("powerSupply")} placeholder="850W 80+ Gold" />
+                  {form.formState.errors.powerSupply && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.powerSupply)}</p>}
+                </div>
+              </>
+            )}
+
+            {selectedCategory === "Periféricos" && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Nome do Produto *</Label>
+                    <Input {...form.register("model")} placeholder="Mouse Gamer RGB" />
+                    {form.formState.errors.model && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.model)}</p>}
+                  </div>
+                  <div>
+                    <Label>Marca *</Label>
+                    <Input {...form.register("brand")} placeholder="Logitech, Razer..." />
+                    {form.formState.errors.brand && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.brand)}</p>}
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Tipo *</Label>
+                  <Input {...form.register("itemType")} placeholder="Mouse, Teclado, Monitor, Headset..." />
+                  {form.formState.errors.itemType && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.itemType)}</p>}
+                </div>
+
+                <div>
+                  <Label>Especificações</Label>
+                  <Textarea {...form.register("specifications")} placeholder="DPI, conexão, resolução, etc..." />
+                </div>
+              </>
+            )}
+
+            {selectedCategory === "Acessórios" && (
+              <>
+                <div>
+                  <Label>Nome do Produto *</Label>
+                  <Input {...form.register("model")} placeholder="Capa de iPhone 15" />
+                  {form.formState.errors.model && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.model)}</p>}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Tipo *</Label>
+                    <Input {...form.register("itemType")} placeholder="Capa, Película, Carregador..." />
+                    {form.formState.errors.itemType && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.itemType)}</p>}
+                  </div>
+                  <div>
+                    <Label>Compatibilidade *</Label>
+                    <Input {...form.register("compatibility")} placeholder="iPhone 13-15" />
+                    {form.formState.errors.compatibility && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.compatibility)}</p>}
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Especificações</Label>
+                  <Textarea {...form.register("specifications")} placeholder="Material, cor, características..." />
+                </div>
+              </>
+            )}
+
+            {/* Campos comuns */}
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold mb-4">Preços e Condição</h3>
+              
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <Label>Condição *</Label>
+                  <Select value={form.watch("condition")} onValueChange={(v) => form.setValue("condition", v as any)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CONDITIONS.map(c => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Cor</Label>
+                  <Select value={form.watch("color") || ""} onValueChange={(v) => form.setValue("color", v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COLORS.map(c => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <Label>Preço de Custo (R$) *</Label>
+                  <Input type="number" step="0.01" {...form.register("costPrice", { valueAsNumber: true })} />
+                  {form.formState.errors.costPrice && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.costPrice)}</p>}
+                </div>
+                <div>
+                  <Label>Ajuste de Preço</Label>
+                  <div className="flex gap-2">
+                    <Select value={adjustType} onValueChange={(v) => form.setValue("priceAdjustType", v as any)}>
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="percentage">%</SelectItem>
+                        <SelectItem value="fixed">R$</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input type="number" step="0.01" {...form.register("priceAdjustValue", { valueAsNumber: true })} placeholder="0" className="flex-1" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">Preço à Vista:</span> {formatCurrency(cashPrice)}
+                </p>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Calculator className="w-3.5 h-3.5 text-primary" />
-                Preço à Vista (calculado)
-              </Label>
-              <div className="h-10 px-3 rounded-lg border border-primary/30 bg-primary/5 flex items-center">
-                <span className="font-bold text-primary">{formatCurrency(isNaN(cashPrice) ? 0 : cashPrice)}</span>
+            {/* Fotos */}
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold mb-4">Fotos do Produto</h3>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <input type="file" multiple accept="image/*" onChange={handlePhotoUpload} className="hidden" id="photo-input" />
+                <label htmlFor="photo-input" className="cursor-pointer">
+                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <p className="text-sm text-gray-600">Clique para selecionar fotos</p>
+                </label>
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Installment Rates */}
-        {rates && rates.length > 0 && (
-          <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-            <h2 className="font-semibold text-foreground flex items-center gap-2">
-              <Percent className="w-4 h-4 text-primary" />
-              Opções de Parcelamento
-            </h2>
-            <p className="text-xs text-muted-foreground">Selecione quais opções de parcelamento serão exibidas para este produto.</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {rates.sort((a, b) => a.installments - b.installments).map(rate => {
-                const isSelected = selectedRates.some(r => r.rateId === rate.id);
-                const installmentPrice = isNaN(cashPrice) ? 0 : cashPrice * (1 + rate.rate / 100) / rate.installments;
-                return (
-                  <label
-                    key={rate.id}
-                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                      isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"
-                    }`}
-                  >
+              {photos.length > 0 && (
+                <div className="grid grid-cols-4 gap-4 mt-4">
+                  {photos.map((photo, idx) => (
+                    <div key={idx} className="relative group">
+                      <img src={photo.url} alt={`Photo ${idx}`} className="w-full h-24 object-cover rounded-lg" />
+                      {photo.isPrimary && <Star className="absolute top-1 right-1 w-4 h-4 fill-yellow-400 text-yellow-400" />}
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 rounded-lg flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                        <button onClick={(e) => handleSetPrimary(idx, e)} className="bg-white p-1 rounded"><Star className="w-4 h-4" /></button>
+                        <button onClick={(e) => handleRemovePhoto(idx, e)} className="bg-white p-1 rounded"><X className="w-4 h-4" /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Parcelamentos */}
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold mb-4">Opções de Parcelamento</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {rates?.map(rate => (
+                  <label key={rate.id} className="flex items-center space-x-2 p-2 border rounded-lg cursor-pointer hover:bg-gray-50">
                     <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={checked => {
+                      checked={selectedRates.some(r => r.rateId === rate.id)}
+                      onCheckedChange={(checked) => {
                         if (checked) {
-                          setSelectedRates(prev => [...prev, { installments: rate.installments, rateId: rate.id }]);
+                          setSelectedRates([...selectedRates, { installments: rate.installments, rateId: rate.id }]);
                         } else {
-                          setSelectedRates(prev => prev.filter(r => r.rateId !== rate.id));
+                          setSelectedRates(selectedRates.filter(r => r.rateId !== rate.id));
                         }
                       }}
-                      className="mt-0.5"
                     />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{rate.installments}x</p>
-                      <p className="text-xs text-muted-foreground">{rate.rate}% a.m.</p>
-                      {!isNaN(cashPrice) && cashPrice > 0 && (
-                        <p className="text-xs text-primary font-medium mt-0.5">{formatCurrency(installmentPrice)}/parcela</p>
-                      )}
-                    </div>
+                    <span className="text-sm">{rate.installments}x ({rate.rate}%)</span>
                   </label>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Photos */}
-        <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-          <h2 className="font-semibold text-foreground">Fotos do Produto</h2>
-          <p className="text-xs text-muted-foreground">Adicione até 10 fotos. A primeira marcada como principal aparecerá no catálogo.</p>
-
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-            {photos.map((photo, idx) => (
-              <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-border">
-                <img src={photo.url} alt="" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => handleSetPrimary(idx)}
-                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${photo.isPrimary ? "bg-primary text-primary-foreground" : "bg-white/20 text-white hover:bg-primary hover:text-primary-foreground"}`}
-                    title="Definir como principal"
-                  >
-                    <Star className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handlePhotoRemove(idx)}
-                    className="w-7 h-7 rounded-full bg-destructive/80 text-white flex items-center justify-center hover:bg-destructive"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                {photo.isPrimary && (
-                  <div className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full font-medium">
-                    Principal
-                  </div>
-                )}
+                ))}
               </div>
-            ))}
-
-            {photos.length < 10 && (
-              <label className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary/50 cursor-pointer flex flex-col items-center justify-center gap-2 transition-colors">
-                <Upload className="w-5 h-5 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Adicionar</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handlePhotoAdd}
-                />
-              </label>
-            )}
-          </div>
-        </div>
-
-        {/* Status + Submit */}
-        <div className="rounded-xl border border-border bg-card p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <p className="font-medium text-foreground">Publicar no catálogo</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Produtos publicados ficam visíveis para todos</p>
             </div>
-            <Switch
-              checked={watch("status") === "published"}
-              onCheckedChange={v => setValue("status", v ? "published" : "draft")}
-            />
-          </div>
 
-          <div className="flex gap-3">
-            <Link href="/admin/produtos" className="flex-1">
-              <Button type="button" variant="outline" className="w-full">Cancelar</Button>
-            </Link>
-            <Button type="submit" className="flex-1 gap-2" disabled={isPending}>
-              {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-              {isPending ? "Salvando..." : isEditing ? "Salvar alterações" : "Criar produto"}
-            </Button>
-          </div>
+            {/* Status e Notas */}
+            <div className="border-t pt-6 grid grid-cols-2 gap-4">
+              <div>
+                <Label>Status</Label>
+                <Select value={form.watch("status")} onValueChange={(v) => form.setValue("status", v as any)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Rascunho</SelectItem>
+                    <SelectItem value="published">Publicado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Notas Internas</Label>
+                <Input {...form.register("notes")} placeholder="Anotações sobre o produto..." />
+              </div>
+            </div>
+
+            {/* Botões */}
+            <div className="flex gap-4 pt-6 border-t">
+              <Button type="submit" disabled={isSaving || uploadingPhotos} className="flex-1">
+                {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                {isEditing ? "Atualizar" : "Criar"} Produto
+              </Button>
+              <Link href="/admin/produtos">
+                <Button type="button" variant="outline" className="flex-1">Cancelar</Button>
+              </Link>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

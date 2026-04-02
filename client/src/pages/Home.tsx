@@ -55,9 +55,9 @@ function ConditionBadge({ condition }: { condition: string }) {
 type CatalogItem = {
   id: number;
   model: string;
-  storage: string;
+  storage: string | null;
   color?: string | null;
-  batteryHealth: number;
+  batteryHealth: number | null;
   repairs?: string | null;
   condition: string;
   cashPrice: number;
@@ -103,7 +103,7 @@ function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (i
         {/* Condition & Battery */}
         <div className="flex items-center justify-between gap-2">
           <ConditionBadge condition={item.condition} />
-          <BatteryBadge health={item.batteryHealth} />
+          {item.batteryHealth && <BatteryBadge health={item.batteryHealth} />}
         </div>
 
         {/* Price */}
@@ -262,12 +262,12 @@ export default function Home() {
 
   const models = useMemo(() => {
     if (!items) return [];
-    return Array.from(new Set(items.map(i => i.model))).sort();
+    return Array.from(new Set(items.map(i => i.model).filter(Boolean))).sort() as string[];
   }, [items]);
 
   const storages = useMemo(() => {
     if (!items) return [];
-    return Array.from(new Set(items.map(i => i.storage))).sort();
+    return Array.from(new Set(items.map(i => i.storage).filter(Boolean))).sort() as string[];
   }, [items]);
 
   const filtered = useMemo(() => {

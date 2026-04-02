@@ -42,10 +42,13 @@
 ## Testes
 - [x] Testes vitest para rotas principais da API
 - [x] Teste de cálculo de preço à vista e parcelado
+- [x] Testes para validação de campos dinâmicos por categoria (17 testes)
 
 ## Entrega
 - [x] Checkpoint salvo
 - [x] Instruções de uso documentadas
+- [ ] Atualizar ProductDetail.tsx para exibir campos específicos por categoria
+- [ ] Atualizar AdminProducts.tsx para exibir campos específicos por categoria
 
 ## Atualizações
 - [x] Inserir 19 taxas de parcelamento (débito até 18x) no banco de dados
@@ -80,3 +83,16 @@
 ## Correções & Manutenção
 - [x] Atualizar produtos existentes com categoria padrão (Smartphones)
 - [x] Garantir que futuras migrações não afetem o estoque de produtos
+- [x] Corrigir tipos TypeScript para aceitar campos null (storage, batteryHealth)
+- [x] Corrigir filtros de memória para ignorar valores null
+
+## Campos Dinâmicos por Categoria
+- [x] Smartphones: modelo, memória, bateria, reparos
+- [x] Tablet: modelo, memória, bateria, reparos
+- [x] Notebook: marca, processador, RAM, armazenamento, tela
+- [x] Computadores: processador, RAM, armazenamento, GPU, fonte
+- [x] Periféricos: tipo, marca, especificação
+- [x] Acessórios: tipo, compatibilidade, descrição
+- [x] Implementar formulário dinâmico que muda campos conforme categoria
+- [ ] Atualizar catálogo para exibir campos corretos por categoria
+- [x] Testes vitest para validar campos dinâmicos por categoria (17 testes)

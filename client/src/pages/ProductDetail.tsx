@@ -128,6 +128,7 @@ export default function ProductDetail() {
             <div className="rounded-xl border border-border bg-card p-5 space-y-4">
               <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Especificações</h3>
               <div className="grid grid-cols-2 gap-4">
+                {item.batteryHealth && (
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                     <Battery className="w-4 h-4 text-primary" />
@@ -139,6 +140,7 @@ export default function ProductDetail() {
                     </p>
                   </div>
                 </div>
+                )}
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                     <ShieldCheck className="w-4 h-4 text-primary" />
