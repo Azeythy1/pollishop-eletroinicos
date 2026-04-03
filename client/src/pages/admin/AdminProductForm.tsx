@@ -24,28 +24,28 @@ const CONDITIONS = ["excelente", "bom", "regular"];
 // Schema base com passthrough para campos dinâmicos
 const baseSchema = z.object({
   category: z.string().min(1, "Selecione a categoria"),
-  color: z.string().optional(),
+  color: z.string().optional().nullable(),
   condition: z.enum(["excelente", "bom", "regular"]),
   costPrice: z.number().positive("Preço de custo obrigatório"),
   priceAdjustType: z.enum(["percentage", "fixed"]),
-  priceAdjustValue: z.number().min(0),
+  priceAdjustValue: z.number().min(0).default(0),
   status: z.enum(["draft", "published"]),
-  notes: z.string().optional(),
+  notes: z.string().optional().nullable(),
 }).passthrough();
 
 // Schemas específicos por categoria
 const smartphoneSchema = baseSchema.extend({
   model: z.string().min(1, "Selecione o modelo"),
-  storage: z.string().min(1, "Selecione a memória"),
-  batteryHealth: z.number().int().min(1).max(100),
-  repairs: z.string().optional(),
+  storage: z.string().optional().nullable(),
+  batteryHealth: z.number().int().min(1).max(100).optional().nullable(),
+  repairs: z.string().optional().nullable(),
 });
 
 const tabletSchema = baseSchema.extend({
   model: z.string().min(1, "Selecione o modelo"),
-  storage: z.string().min(1, "Selecione a memória"),
-  batteryHealth: z.number().int().min(1).max(100),
-  repairs: z.string().optional(),
+  storage: z.string().optional().nullable(),
+  batteryHealth: z.number().int().min(1).max(100).optional().nullable(),
+  repairs: z.string().optional().nullable(),
 });
 
 const notebookSchema = baseSchema.extend({
@@ -271,10 +271,28 @@ export default function AdminProductForm() {
   const onSubmit = async (data: any) => {
     console.log('[AdminProductForm] Submitting:', data);
     
+    // Converter campos vazios em null, mas preservar campos obrigatórios
+    const requiredFields = ['model', 'category', 'costPrice', 'condition', 'priceAdjustType', 'status'];
+    const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
+      if ((value === '' || value === undefined) && !requiredFields.includes(key)) {
+        acc[key] = null;
+      } else if (value === '' && requiredFields.includes(key)) {
+        acc[key] = undefined; // Deixar undefined para validação falhar
+      } else {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as any);
+    
+    // Garantir que priceAdjustValue seja um número válido
+    if (isNaN(cleanData.priceAdjustValue)) {
+      cleanData.priceAdjustValue = 0;
+    }
+    
     // Validar com schema apropriado
     const schema = getSchemaForCategory(selectedCategory);
     try {
-      await schema.parseAsync(data);
+      await schema.parseAsync(cleanData);
     } catch (err: any) {
       console.error('Validation error:', err);
       toast.error('Erro de validação: ' + err.message);
@@ -290,13 +308,13 @@ export default function AdminProductForm() {
       updateMutation.mutate({
         id: productId,
         data: {
-          ...data,
+          ...cleanData,
           installmentConfig,
         },
       });
     } else {
       createMutation.mutate({
-        ...data,
+        ...cleanData,
         installmentConfig,
       });
     }
@@ -352,7 +370,11 @@ export default function AdminProductForm() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Modelo *</Label>
-                    <Input {...form.register("model")} placeholder="iPhone 15 Pro" />
+                    <Input 
+                      value={form.watch("model") || ""}
+                      onChange={(e) => form.setValue("model", e.target.value)}
+                      placeholder="iPhone 15 Pro" 
+                    />
                     {form.formState.errors.model && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.model)}</p>}
                   </div>
                   <div>

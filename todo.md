@@ -104,3 +104,10 @@
 - [x] Adicionar setas de navegação ao carrossel
 - [x] Implementar scroll com deslizar de dedo (touch)
 - [x] Implementar scroll com clique nas setas (mouse)
+
+## Bugs Encontrados e Corrigidos
+- [x] Erro ao criar produto: storage e batteryHealth undefined quando não preenchidos
+- [x] Schema de validação exigindo campos opcionais
+- [x] Erro de query: coluna `category` não existia no banco de dados
+- [x] Migrações SQL não foram aplicadas ao banco de dados
+- [x] Formulário não sincronizava valores com React Hook Form
