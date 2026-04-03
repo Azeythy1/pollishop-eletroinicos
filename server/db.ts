@@ -56,11 +56,15 @@ export async function getUserByOpenId(openId: string) {
 export async function getAllIphones(includeUnpublished = false) {
   const db = await getDb();
   if (!db) return [];
-  const query = db.select().from(iphones).orderBy(desc(iphones.createdAt));
-  if (!includeUnpublished) {
-    return db.select().from(iphones).where(eq(iphones.status, "published")).orderBy(desc(iphones.createdAt));
+  try {
+    if (!includeUnpublished) {
+      return await db.select().from(iphones).where(eq(iphones.status, "published")).orderBy(desc(iphones.createdAt));
+    }
+    return await db.select().from(iphones).orderBy(desc(iphones.createdAt));
+  } catch (error) {
+    console.error("[Database] getAllIphones error:", error);
+    return [];
   }
-  return query;
 }
 
 export async function getIphoneById(id: number) {

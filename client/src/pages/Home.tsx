@@ -6,9 +6,9 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Smartphone, Battery, Wrench, ShieldCheck, LogIn, Settings, ShoppingCart, X, MessageCircle } from "lucide-react";
+import { Smartphone, Battery, Wrench, ShieldCheck, LogIn, Settings, ShoppingCart, X, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
 function formatCurrency(value: number) {
@@ -259,6 +259,28 @@ export default function Home() {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = () => {
+    if (carouselRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = 250;
+      carouselRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+      setTimeout(checkScroll, 300);
+    }
+  };
 
   const models = useMemo(() => {
     if (!items) return [];
@@ -402,31 +424,59 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Category Menu */}
+      {/* Category Menu - Carousel */}
       <section className="border-b border-border bg-card/50">
         <div className="container">
-          <div className="flex gap-2 overflow-x-auto py-4 scrollbar-hide">
-            {[
-              { icon: Smartphone, label: "Smartphones" },
-              { icon: Battery, label: "Tablet" },
-              { icon: Wrench, label: "Notebook" },
-              { icon: ShieldCheck, label: "Computadores" },
-              { icon: Smartphone, label: "Periféricos" },
-              { icon: Battery, label: "Acessórios" },
-            ].map(({ icon: Icon, label }) => (
-              <button
-                key={label}
-                onClick={() => setFilterCategory(label)}
-                className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-colors whitespace-nowrap text-sm font-medium ${
-                  filterCategory === label
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                {label}
-              </button>
-            ))}
+          <div className="flex items-center gap-2 py-4">
+            {/* Left Arrow */}
+            <button
+              onClick={() => scroll('left')}
+              disabled={!canScrollLeft}
+              className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            {/* Carousel Container */}
+            <div
+              ref={carouselRef}
+              className="flex gap-2 overflow-x-auto scrollbar-hide flex-1"
+              onScroll={checkScroll}
+              onTouchEnd={checkScroll}
+            >
+              {[
+                { icon: Smartphone, label: "Smartphones" },
+                { icon: Battery, label: "Tablet" },
+                { icon: Wrench, label: "Notebook" },
+                { icon: ShieldCheck, label: "Computadores" },
+                { icon: Smartphone, label: "Periféricos" },
+                { icon: Battery, label: "Acessórios" },
+              ].map(({ icon: Icon, label }) => (
+                <button
+                  key={label}
+                  onClick={() => setFilterCategory(label)}
+                  className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all whitespace-nowrap text-sm font-medium flex-shrink-0 ${
+                    filterCategory === label
+                      ? "bg-primary text-primary-foreground shadow-md scale-105"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Right Arrow */}
+            <button
+              onClick={() => scroll('right')}
+              disabled={!canScrollRight}
+              className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </section>

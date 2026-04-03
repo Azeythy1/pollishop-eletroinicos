@@ -96,3 +96,11 @@
 - [x] Implementar formulário dinâmico que muda campos conforme categoria
 - [ ] Atualizar catálogo para exibir campos corretos por categoria
 - [x] Testes vitest para validar campos dinâmicos por categoria (17 testes)
+
+## Correções Urgentes
+- [x] Corrigir erro de query no banco de dados (status = published)
+- [x] Aplicar migrações SQL ao banco de dados (category, processor, ram, etc)
+- [x] Transformar menu de categorias em carrossel horizontal
+- [x] Adicionar setas de navegação ao carrossel
+- [x] Implementar scroll com deslizar de dedo (touch)
+- [x] Implementar scroll com clique nas setas (mouse)
