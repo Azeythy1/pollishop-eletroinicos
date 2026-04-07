@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -21,6 +22,7 @@ import {
 } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
+import { applyPendingMigrations } from "./apply-migrations";
 
 // ─── Admin guard ──────────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -315,6 +317,19 @@ export const appRouter = router({
       return rates.map(r => ({ id: r.id, installments: r.installments, rate: parseFloat(r.rate as unknown as string) }));
     }),
   }),
+
+  // Admin: Database migrations
+  migrations: router({
+    runMigrations: adminProcedure.mutation(async () => {
+      const success = await applyPendingMigrations();
+      return { success };
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
+
+// Auto-apply migrations on startup (disabled - use admin endpoint instead)
+// setTimeout(() => {
+//   applyPendingMigrations().catch(err => console.error("[Startup] Migration error:", err));
+// }, 2000);

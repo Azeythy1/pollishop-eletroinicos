@@ -36,6 +36,20 @@
       "when": 1775102891995,
       "tag": "0004_robust_magdalene",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1775584058169,
+      "tag": "0005_daffy_invaders",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1775584214588,
+      "tag": "0006_plain_johnny_storm",
+      "breakpoints": true
     }
   ]
 }

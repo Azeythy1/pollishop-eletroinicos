@@ -55,9 +55,13 @@ export const iphones = mysqlTable("iphones", {
   gpu: varchar("gpu", { length: 128 }), // NVIDIA GTX, Intel Iris, etc
   powerSupply: varchar("powerSupply", { length: 64 }), // 500W, 650W, etc (Computadores)
   screen: varchar("screen", { length: 64 }), // 15.6", 17", etc (Notebook)
+  cooler: varchar("cooler", { length: 128 }), // Cooler do processador (Computadores)
+  cabinet: varchar("cabinet", { length: 128 }), // Gabinete (Computadores)
   
   // Campos Periféricos/Acessórios
   itemType: varchar("itemType", { length: 64 }), // mouse, teclado, monitor, capa, etc
+  itemCategory: mysqlEnum("itemCategory", ["Informática", "Acessórios"]), // Categoria para Periféricos
+  itemSubcategory: varchar("itemSubcategory", { length: 64 }), // mouse, teclado, mousepad, cabo, carregador, power bank, mag safe
   brand: varchar("brand", { length: 64 }), // marca do produto
   specifications: text("specifications"), // especificações adicionais
   compatibility: varchar("compatibility", { length: 256 }), // compatibilidade (ex: iPhone 13-15)
@@ -65,7 +69,7 @@ export const iphones = mysqlTable("iphones", {
   // Pricing
   costPrice: decimal("costPrice", { precision: 10, scale: 2, mode: "number" }).notNull(),
   priceAdjustType: mysqlEnum("priceAdjustType", ["percentage", "fixed"]).default("percentage").notNull(),
-  priceAdjustValue: decimal("priceAdjustValue", { precision: 10, scale: 2, mode: "number" }).notNull(),
+  priceAdjustValue: decimal("priceAdjustValue", { precision: 10, scale: 2, mode: "number" }).default(0).notNull(),
   cashPrice: decimal("cashPrice", { precision: 10, scale: 2, mode: "number" }).notNull(),
 
   // Installment config: JSON array of { installments: number, rateId: number }

@@ -44,13 +44,51 @@
 - [x] Teste de cálculo de preço à vista e parcelado
 - [x] Testes para validação de campos dinâmicos por categoria (17 testes)
 
-## Entrega
-- [x] Checkpoint salvo
-- [x] Instruções de uso documentadas
+## Categorias de Produtos
+- [x] Adicionar campo categoria no schema do banco de dados
+- [x] Implementar seleção de categoria no painel admin
+- [x] Criar barra de menu com ícones para 6 categorias (Smartphones, Tablet, Notebook, Computadores, Periféricos, Acessórios)
+- [x] Implementar filtro por categoria no catálogo público
+- [x] Carrossel de categorias com setas de navegação
+- [x] Suporte a deslizar com dedo (touch)
+
+## Campos Dinâmicos por Categoria
+- [x] Smartphones: modelo, memória, bateria, reparos
+- [x] Tablet: modelo, memória, bateria, reparos
+- [x] Notebook: marca, processador, RAM, armazenamento, tela, GPU
+- [x] Computadores: processador, RAM, armazenamento, GPU, fonte, cooler, gabinete
+- [x] Periféricos: tipo, marca, especificação, categoria, subcategoria
+- [x] Acessórios: tipo, compatibilidade, descrição
+- [x] Implementar formulário dinâmico que muda campos conforme categoria
+- [x] Testes vitest para validar campos dinâmicos por categoria (17 testes)
+
+## Correções Aplicadas
+- [x] Corrigir erro de query no banco de dados (coluna category não existia)
+- [x] Aplicar migrações SQL ao banco de dados (0005, 0006)
+- [x] Transformar menu de categorias em carrossel horizontal
+- [x] Adicionar setas de navegação ao carrossel
+- [x] Implementar scroll com deslizar de dedo (touch)
+- [x] Implementar scroll com clique nas setas (mouse)
+- [x] Erro ao criar produto: storage e batteryHealth undefined
+- [x] Schema de validação exigindo campos opcionais
+- [x] Formulário não sincronizava valores com React Hook Form
+- [x] Migrações 0005 e 0006 aplicadas com sucesso
+- [x] Produtos agora carregam corretamente com as novas colunas
+- [x] Script standalone `migrate.mjs` criado para aplicar migrações
+- [x] Alguns produtos não estavam carregando fotos - RESOLVIDO
+- [x] Schema reorganizado conforme estrutura de descrição de cada categoria
+- [x] Adicionados campos: cooler, cabinet, itemCategory, itemSubcategory
+
+## Próximas Melhorias
+- [ ] Atualizar AdminProductForm.tsx com novos campos (cooler, cabinet, itemCategory, itemSubcategory)
 - [ ] Atualizar ProductDetail.tsx para exibir campos específicos por categoria
 - [ ] Atualizar AdminProducts.tsx para exibir campos específicos por categoria
+- [ ] Adicionar filtro de faixa de preço no catálogo público
+- [ ] Implementar busca por nome/modelo de produto
+- [ ] Adicionar avaliações e comentários de clientes
+- [ ] Implementar sistema de notificações de novos produtos
 
-## Atualizações
+## Atualizações Anteriores
 - [x] Inserir 19 taxas de parcelamento (débito até 18x) no banco de dados
 - [x] Destaque visual para parcela de 12x no card do produto
 - [x] Modal/drawer com todas as opções de parcelamento
@@ -73,41 +111,3 @@
 - [x] Desvincular parcelamentos do carrinho
 - [x] Mover seleção de parcelas para checkout final via WhatsApp
 - [x] Remover texto "Qual opção de parcelamento você deseja?" da mensagem WhatsApp
-
-## Categorias de Produtos
-- [x] Adicionar campo categoria no schema do banco de dados
-- [x] Implementar seleção de categoria no painel admin
-- [x] Criar barra de menu com ícones para 6 categorias (Smartphones, Tablet, Notebook, Computadores, Periféricos, Acessórios)
-- [x] Implementar filtro por categoria no catálogo público
-
-## Correções & Manutenção
-- [x] Atualizar produtos existentes com categoria padrão (Smartphones)
-- [x] Garantir que futuras migrações não afetem o estoque de produtos
-- [x] Corrigir tipos TypeScript para aceitar campos null (storage, batteryHealth)
-- [x] Corrigir filtros de memória para ignorar valores null
-
-## Campos Dinâmicos por Categoria
-- [x] Smartphones: modelo, memória, bateria, reparos
-- [x] Tablet: modelo, memória, bateria, reparos
-- [x] Notebook: marca, processador, RAM, armazenamento, tela
-- [x] Computadores: processador, RAM, armazenamento, GPU, fonte
-- [x] Periféricos: tipo, marca, especificação
-- [x] Acessórios: tipo, compatibilidade, descrição
-- [x] Implementar formulário dinâmico que muda campos conforme categoria
-- [ ] Atualizar catálogo para exibir campos corretos por categoria
-- [x] Testes vitest para validar campos dinâmicos por categoria (17 testes)
-
-## Correções Urgentes
-- [x] Corrigir erro de query no banco de dados (status = published)
-- [x] Aplicar migrações SQL ao banco de dados (category, processor, ram, etc)
-- [x] Transformar menu de categorias em carrossel horizontal
-- [x] Adicionar setas de navegação ao carrossel
-- [x] Implementar scroll com deslizar de dedo (touch)
-- [x] Implementar scroll com clique nas setas (mouse)
-
-## Bugs Encontrados e Corrigidos
-- [x] Erro ao criar produto: storage e batteryHealth undefined quando não preenchidos
-- [x] Schema de validação exigindo campos opcionais
-- [x] Erro de query: coluna `category` não existia no banco de dados
-- [x] Migrações SQL não foram aplicadas ao banco de dados
-- [x] Formulário não sincronizava valores com React Hook Form

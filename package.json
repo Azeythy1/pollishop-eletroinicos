@@ -113,3 +113,4 @@
     }
   }
 }
+  "migrate": "node migrate.mjs",
