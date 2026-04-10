@@ -82,7 +82,7 @@ function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (i
       className="rounded-lg border border-border bg-card overflow-hidden hover:shadow-lg transition-shadow"
     >
       {/* Image */}
-      <div className="relative aspect-square bg-muted overflow-hidden">
+      <div className="relative w-full h-32 bg-muted overflow-hidden">
         {primaryPhoto ? (
           <img src={primaryPhoto.url} alt={item.model} className="w-full h-full object-cover" />
         ) : (
@@ -93,53 +93,52 @@ function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (i
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-3">
+      <div className="p-2 space-y-2">
         {/* Model & Storage */}
         <div>
-          <h3 className="font-bold text-foreground text-sm">{item.model}</h3>
-          <p className="text-xs text-muted-foreground">{item.storage} {item.color && `• ${item.color}`}</p>
+          <h3 className="font-bold text-foreground text-xs line-clamp-1">{item.model}</h3>
+          <p className="text-xs text-muted-foreground line-clamp-1">{item.storage}</p>
         </div>
 
         {/* Condition & Battery */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1">
           <ConditionBadge condition={item.condition} />
           {item.batteryHealth && <BatteryBadge health={item.batteryHealth} />}
         </div>
 
         {/* Price */}
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           <p className="text-xs text-muted-foreground">À vista</p>
-          <p className="font-bold text-lg text-foreground">{formatCurrency(item.cashPrice)}</p>
+          <p className="font-bold text-sm text-foreground">{formatCurrency(item.cashPrice)}</p>
         </div>
 
         {/* 12x Highlight */}
         {installment12x && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
+          <div className="bg-blue-50 border border-blue-200 rounded p-1.5">
             <p className="text-xs text-blue-600 font-medium">12x de</p>
-            <p className="font-bold text-blue-700">{formatCurrency(installment12x.perInstallment)}</p>
+            <p className="font-bold text-xs text-blue-700">{formatCurrency(installment12x.perInstallment)}</p>
           </div>
         )}
 
         {/* Buttons */}
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-1 pt-1">
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex-1"
+            className="flex-1 text-xs h-7"
             onClick={() => setShowAllInstallments(true)}
           >
-            Ver parcelas
+            Parcelas
           </Button>
           <Button 
             size="sm" 
-            className="flex-1 bg-primary hover:bg-primary/90"
+            className="flex-1 bg-primary hover:bg-primary/90 text-xs h-7"
             onClick={() => {
               onAddToCart(item);
-              toast.success(`${item.model} adicionado ao carrinho!`);
+              toast.success(`${item.model} adicionado!`);
             }}
           >
-            <ShoppingCart className="w-4 h-4 mr-1" />
-            Comprar
+            <ShoppingCart className="w-3 h-3" />
           </Button>
         </div>
       </div>
@@ -515,7 +514,7 @@ export default function Home() {
 
           {/* Loading */}
           {isLoading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 pt-8">
               {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
             </div>
           )}
@@ -533,7 +532,7 @@ export default function Home() {
 
           {/* Grid */}
           {!isLoading && filtered.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 pt-8">
               {filtered.map(item => (
                 <ProductCard key={item.id} item={item} onAddToCart={handleAddToCart} />
               ))}

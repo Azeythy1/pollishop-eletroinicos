@@ -111,3 +111,11 @@
 - [x] Desvincular parcelamentos do carrinho
 - [x] Mover seleção de parcelas para checkout final via WhatsApp
 - [x] Remover texto "Qual opção de parcelamento você deseja?" da mensagem WhatsApp
+
+
+## Layout do Catálogo - Reformulação
+- [ ] Redesenhar grid com imagens menores e padronizadas
+- [ ] Implementar toggle entre vista em lista e vista em grade
+- [ ] Reduzir altura dos cards de produtos
+- [ ] Mostrar descrição compacta com campos principais da categoria
+- [ ] Padronizar tamanho das imagens (ex: 200x200px ou 250x250px)
