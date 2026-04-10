@@ -82,12 +82,12 @@ function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (i
       className="rounded-lg border border-border bg-card overflow-hidden hover:shadow-lg transition-shadow"
     >
       {/* Image */}
-      <div className="relative w-full h-32 bg-muted overflow-hidden">
+      <div className="relative w-full h-24 bg-muted overflow-hidden">
         {primaryPhoto ? (
           <img src={primaryPhoto.url} alt={item.model} className="w-full h-full object-cover" />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <Smartphone className="w-12 h-12 text-muted-foreground/30" />
+            <Smartphone className="w-8 h-8 text-muted-foreground/30" />
           </div>
         )}
       </div>
@@ -514,7 +514,7 @@ export default function Home() {
 
           {/* Loading */}
           {isLoading && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 pt-8">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2 pt-8">
               {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
             </div>
           )}
@@ -532,7 +532,7 @@ export default function Home() {
 
           {/* Grid */}
           {!isLoading && filtered.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 pt-8">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2 pt-8">
               {filtered.map(item => (
                 <ProductCard key={item.id} item={item} onAddToCart={handleAddToCart} />
               ))}
