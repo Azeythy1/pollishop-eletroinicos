@@ -111,8 +111,5 @@
     "overrides": {
       "tailwindcss>nanoid": "3.3.7"
     }
-  },
-  "scripts": {
-    "migrate": "node migrate.mjs"
   }
 }
