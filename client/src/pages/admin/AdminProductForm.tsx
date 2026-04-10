@@ -219,23 +219,41 @@ export default function AdminProductForm() {
     try {
       for (const photo of filesToUpload) {
         if (photo.file) {
-          const formData = new FormData();
-          formData.append('file', photo.file);
-          formData.append('iphoneId', iPhoneId.toString());
-          formData.append('isPrimary', photo.isPrimary.toString());
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const result = reader.result as string;
+              const base64String = result.split(',')[1];
+              resolve(base64String);
+            };
+            reader.onerror = reject;
+            if (photo.file) reader.readAsDataURL(photo.file);
+          });
 
-          const response = await fetch('/api/trpc/admin.uploadPhoto?batch=1', {
+          const response = await fetch('/api/trpc/admin.uploadPhoto', {
             method: 'POST',
-            body: formData,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              json: {
+                iphoneId: iPhoneId,
+                filename: photo.file.name,
+                mimeType: photo.file.type,
+                base64,
+                isPrimary: photo.isPrimary,
+              },
+            }),
           });
 
           if (!response.ok) {
-            throw new Error('Upload failed');
+            const error = await response.text();
+            throw new Error(`Upload failed: ${error}`);
           }
         }
       }
       setPhotos(photos.filter(p => !p.file));
+      toast.success('Fotos enviadas com sucesso!');
     } catch (err) {
+      console.error('Upload error:', err);
       toast.error('Erro ao fazer upload de fotos');
     } finally {
       setUploadingPhotos(false);
