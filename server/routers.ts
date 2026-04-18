@@ -69,6 +69,10 @@ const iphoneInput = z.object({
   brand: z.string().optional().nullable(),
   specifications: z.string().optional().nullable(),
   compatibility: z.string().optional().nullable(),
+  cooler: z.string().optional().nullable(),
+  cabinet: z.string().optional().nullable(),
+  itemCategory: z.enum(["Informática", "Acessórios"]).optional().nullable(),
+  itemSubcategory: z.string().optional().nullable(),
   installmentConfig: z.array(z.object({ installments: z.number(), rateId: z.number() })).optional(),
   status: z.enum(["draft", "published"]).default("draft"),
   notes: z.string().optional().nullable(),
@@ -117,46 +121,54 @@ export const appRouter = router({
           repairs: item.repairs,
           condition: item.condition,
           cashPrice: parseFloat(item.cashPrice as unknown as string),
-          installmentOptions,
-          photos: photos.map(p => ({ id: p.id, url: p.url, isPrimary: p.isPrimary })),
-          createdAt: item.createdAt,
-        });
-      }
-      return result;
-    }),
+        installmentOptions,
+        photos: photos.map(p => ({ id: p.id, url: p.url, isPrimary: p.isPrimary })),
+        // Include all category fields
+        brand: item.brand,
+        processor: item.processor,
+        ram: item.ram,
+        storageCapacity: item.storageCapacity,
+        gpu: item.gpu,
+        powerSupply: item.powerSupply,
+        screen: item.screen,
+        cooler: item.cooler,
+        cabinet: item.cabinet,
+        itemType: item.itemType,
+        itemCategory: item.itemCategory,
+        itemSubcategory: item.itemSubcategory,
+        specifications: item.specifications,
+        compatibility: item.compatibility,
+        createdAt: item.createdAt,
+      });
+    }
+    return result;
+  }),
 
-    getById: publicProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
-      const item = await getIphoneById(input.id);
-      if (!item || item.status !== "published") throw new TRPCError({ code: "NOT_FOUND" });
-      const photos = await getPhotosByIphoneId(item.id);
-      const rates = await getAllRates(true);
-      const installmentOptions: Array<{ installments: number; rate: number; total: number; perInstallment: number }> = [];
-      const config = item.installmentConfig as Array<{ installments: number; rateId: number }> | null;
-      if (config && Array.isArray(config)) {
-        for (const cfg of config) {
-          const rateObj = rates.find(r => r.id === cfg.rateId);
-          if (rateObj) {
-            const cashPrice = parseFloat(item.cashPrice as unknown as string);
-            const rateVal = parseFloat(rateObj.rate as unknown as string);
-            const calc = calcInstallmentPrice(cashPrice, rateVal, cfg.installments);
-            installmentOptions.push({ installments: cfg.installments, rate: rateVal, ...calc });
-          }
+  getById: publicProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+    const item = await getIphoneById(input.id);
+    if (!item || item.status !== "published") throw new TRPCError({ code: "NOT_FOUND" });
+    const photos = await getPhotosByIphoneId(item.id);
+    const rates = await getAllRates(true);
+    const installmentOptions: Array<{ installments: number; rate: number; total: number; perInstallment: number }> = [];
+    const config = item.installmentConfig as Array<{ installments: number; rateId: number }> | null;
+    if (config && Array.isArray(config)) {
+      for (const cfg of config) {
+        const rateObj = rates.find(r => r.id === cfg.rateId);
+        if (rateObj) {
+          const cashPrice = parseFloat(item.cashPrice as unknown as string);
+          const rateVal = parseFloat(rateObj.rate as unknown as string);
+          const calc = calcInstallmentPrice(cashPrice, rateVal, cfg.installments);
+          installmentOptions.push({ installments: cfg.installments, rate: rateVal, ...calc });
         }
       }
-      return {
-        id: item.id,
-        model: item.model,
-        storage: item.storage,
-        color: item.color,
-        batteryHealth: item.batteryHealth,
-        repairs: item.repairs,
-        condition: item.condition,
-        cashPrice: parseFloat(item.cashPrice as unknown as string),
-        installmentOptions,
-        photos: photos.map(p => ({ id: p.id, url: p.url, isPrimary: p.isPrimary, sortOrder: p.sortOrder })),
-        createdAt: item.createdAt,
-      };
-    }),
+    }
+    return {
+      ...item,
+      cashPrice: parseFloat(item.cashPrice as unknown as string),
+      installmentOptions,
+      photos: photos.map(p => ({ id: p.id, url: p.url, isPrimary: p.isPrimary, sortOrder: p.sortOrder })),
+    };
+  }),
   }),
 
   // ─── Admin: iPhones ─────────────────────────────────────────────────────────
@@ -192,22 +204,18 @@ export const appRouter = router({
 
     createIphone: adminProcedure.input(iphoneInput).mutation(async ({ input }) => {
       const cashPrice = calcCashPrice(input.costPrice, input.priceAdjustType, input.priceAdjustValue);
+      const { installmentConfig, ...rest } = input;
       await createIphone({
+        ...rest,
         category: input.category as any,
-        model: input.model,
-        storage: input.storage,
         color: input.color ?? null,
-        batteryHealth: input.batteryHealth,
         repairs: input.repairs ?? null,
-        condition: input.condition,
         costPrice: String(input.costPrice) as unknown as number,
-        priceAdjustType: input.priceAdjustType,
         priceAdjustValue: String(input.priceAdjustValue) as unknown as number,
         cashPrice: String(cashPrice) as unknown as number,
-        installmentConfig: input.installmentConfig ?? null,
-        status: input.status,
+        installmentConfig: installmentConfig ?? null,
         notes: input.notes ?? null,
-      });
+      } as any);
       // Get last inserted
       const all = await getAllIphones(true);
       return all[0];

@@ -66,12 +66,16 @@ const computerSchema = baseSchema.extend({
   storageCapacity: z.string().min(1, "Armazenamento obrigatório"),
   gpu: z.string().min(1, "GPU obrigatória"),
   powerSupply: z.string().min(1, "Fonte obrigatória"),
+  cooler: z.string().optional().nullable(),
+  cabinet: z.string().optional().nullable(),
 });
 
 const peripheralSchema = baseSchema.extend({
   model: z.string().min(1, "Nome do produto obrigatório"),
   brand: z.string().min(1, "Marca obrigatória"),
   itemType: z.string().min(1, "Tipo obrigatório"),
+  itemCategory: z.enum(["Informática", "Acessórios"]).optional().nullable(),
+  itemSubcategory: z.string().optional().nullable(),
   specifications: z.string().optional(),
 });
 
@@ -170,8 +174,12 @@ export default function AdminProductForm() {
         powerSupply: existingProduct.powerSupply || "",
         screen: existingProduct.screen || "",
         itemType: existingProduct.itemType || "",
+        itemCategory: (existingProduct.itemCategory as any) || null,
+        itemSubcategory: existingProduct.itemSubcategory || "",
         specifications: existingProduct.specifications || "",
         compatibility: existingProduct.compatibility || "",
+        cooler: existingProduct.cooler || "",
+        cabinet: existingProduct.cabinet || "",
       });
       if (existingProduct.photos) {
         setPhotos(existingProduct.photos.map((p: any) => ({ id: p.id, url: p.url, isPrimary: p.isPrimary })));
@@ -533,6 +541,17 @@ export default function AdminProductForm() {
                   <Input {...form.register("powerSupply")} placeholder="850W 80+ Gold" />
                   {form.formState.errors.powerSupply && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.powerSupply)}</p>}
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Cooler</Label>
+                    <Input {...form.register("cooler")} placeholder="Water Cooler 360mm" />
+                  </div>
+                  <div>
+                    <Label>Gabinete</Label>
+                    <Input {...form.register("cabinet")} placeholder="Lian Li O11 Dynamic" />
+                  </div>
+                </div>
               </>
             )}
 
@@ -551,10 +570,29 @@ export default function AdminProductForm() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Tipo *</Label>
+                    <Input {...form.register("itemType")} placeholder="Mouse, Teclado, Monitor, Headset..." />
+                    {form.formState.errors.itemType && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.itemType)}</p>}
+                  </div>
+                  <div>
+                    <Label>Categoria de Item</Label>
+                    <Select value={form.watch("itemCategory") || ""} onValueChange={(v) => form.setValue("itemCategory", v as any)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Informática">Informática</SelectItem>
+                        <SelectItem value="Acessórios">Acessórios</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div>
-                  <Label>Tipo *</Label>
-                  <Input {...form.register("itemType")} placeholder="Mouse, Teclado, Monitor, Headset..." />
-                  {form.formState.errors.itemType && <p className="text-red-500 text-sm mt-1">{getErrorMessage(form.formState.errors.itemType)}</p>}
+                  <Label>Subcategoria</Label>
+                  <Input {...form.register("itemSubcategory")} placeholder="Mouse Gamer, Teclado Mecânico..." />
                 </div>
 
                 <div>

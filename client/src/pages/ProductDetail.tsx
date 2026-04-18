@@ -4,10 +4,22 @@ import { trpc } from "@/lib/trpc";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Smartphone, Battery, Wrench, ChevronLeft, ChevronRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Smartphone, Battery, Wrench, ChevronLeft, ChevronRight, ShieldCheck, CheckCircle2, Cpu, HardDrive, Monitor, MousePointer2, Box, Layers, Laptop, MonitorSmartphone, Tablet as TabletIcon } from "lucide-react";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+}
+
+function getCategoryIcon(category: string) {
+  switch (category) {
+    case "Smartphones": return <Smartphone className="w-3 h-3 text-primary-foreground" />;
+    case "Tablet": return <TabletIcon className="w-3 h-3 text-primary-foreground" />;
+    case "Notebook": return <Laptop className="w-3 h-3 text-primary-foreground" />;
+    case "Computadores": return <Monitor className="w-3 h-3 text-primary-foreground" />;
+    case "Periféricos": return <MousePointer2 className="w-3 h-3 text-primary-foreground" />;
+    case "Acessórios": return <Box className="w-3 h-3 text-primary-foreground" />;
+    default: return <Smartphone className="w-3 h-3 text-primary-foreground" />;
+  }
 }
 
 export default function ProductDetail() {
@@ -55,9 +67,9 @@ export default function ProductDetail() {
             </Link>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-                <Smartphone className="w-3 h-3 text-primary-foreground" />
+                {getCategoryIcon(item.category as string)}
               </div>
-              <span className="font-semibold text-sm text-foreground">{item.model} · {item.storage}</span>
+              <span className="font-semibold text-sm text-foreground">{item.model} {item.storage ? `· ${item.storage}` : ""}</span>
             </div>
           </div>
         </div>
@@ -112,7 +124,8 @@ export default function ProductDetail() {
             <div>
               <h1 className="text-3xl font-bold text-foreground">{item.model}</h1>
               <div className="flex flex-wrap items-center gap-3 mt-3">
-                <Badge variant="secondary" className="text-sm">{item.storage}</Badge>
+                {item.storage && <Badge variant="secondary" className="text-sm">{item.storage}</Badge>}
+                {item.brand && <Badge variant="outline" className="text-sm">{item.brand}</Badge>}
                 {item.color && <span className="text-sm text-muted-foreground">{item.color}</span>}
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                   item.condition === "excelente" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" :
@@ -127,20 +140,103 @@ export default function ProductDetail() {
             {/* Specs */}
             <div className="rounded-xl border border-border bg-card p-5 space-y-4">
               <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Especificações</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {item.batteryHealth && (
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Battery className="w-4 h-4 text-primary" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Campos de Hardware (Notebook/Computadores) */}
+                {item.processor && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Cpu className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Processador</p>
+                      <p className="font-semibold text-foreground">{item.processor}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Saúde da Bateria</p>
-                    <p className={`font-semibold ${item.batteryHealth >= 85 ? "text-emerald-400" : item.batteryHealth >= 70 ? "text-yellow-400" : "text-red-400"}`}>
-                      {item.batteryHealth}%
-                    </p>
-                  </div>
-                </div>
                 )}
+                {item.ram && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Layers className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Memória RAM</p>
+                      <p className="font-semibold text-foreground">{item.ram}</p>
+                    </div>
+                  </div>
+                )}
+                {item.storageCapacity && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <HardDrive className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Armazenamento</p>
+                      <p className="font-semibold text-foreground">{item.storageCapacity}</p>
+                    </div>
+                  </div>
+                )}
+                {item.gpu && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <MonitorSmartphone className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Placa de Vídeo</p>
+                      <p className="font-semibold text-foreground">{item.gpu}</p>
+                    </div>
+                  </div>
+                )}
+                {item.screen && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Monitor className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Tela</p>
+                      <p className="font-semibold text-foreground">{item.screen}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Campos de Smartphone/Tablet */}
+                {item.batteryHealth && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Battery className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Saúde da Bateria</p>
+                      <p className={`font-semibold ${item.batteryHealth >= 85 ? "text-emerald-400" : item.batteryHealth >= 70 ? "text-yellow-400" : "text-red-400"}`}>
+                        {item.batteryHealth}%
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Campos de Periféricos/Acessórios */}
+                {item.itemType && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Box className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Tipo</p>
+                      <p className="font-semibold text-foreground capitalize">{item.itemType}</p>
+                    </div>
+                  </div>
+                )}
+                {item.compatibility && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Compatibilidade</p>
+                      <p className="font-semibold text-foreground">{item.compatibility}</p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                     <ShieldCheck className="w-4 h-4 text-primary" />
@@ -151,6 +247,14 @@ export default function ProductDetail() {
                   </div>
                 </div>
               </div>
+
+              {item.specifications && (
+                <div className="pt-4 border-t border-border">
+                  <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Especificações Técnicas</p>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{item.specifications}</p>
+                </div>
+              )}
+
               {item.repairs && (
                 <div className="flex items-start gap-3 pt-2 border-t border-border">
                   <div className="w-9 h-9 rounded-lg bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
@@ -162,7 +266,7 @@ export default function ProductDetail() {
                   </div>
                 </div>
               )}
-              {!item.repairs && (
+              {(item.category === "Smartphones" || item.category === "Tablet") && !item.repairs && (
                 <div className="flex items-center gap-3 pt-2 border-t border-border">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                   <p className="text-sm text-emerald-400">Sem reparos registrados</p>

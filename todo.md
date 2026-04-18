@@ -80,9 +80,9 @@
 - [x] Adicionados campos: cooler, cabinet, itemCategory, itemSubcategory
 
 ## Próximas Melhorias
-- [ ] Atualizar AdminProductForm.tsx com novos campos (cooler, cabinet, itemCategory, itemSubcategory)
-- [ ] Atualizar ProductDetail.tsx para exibir campos específicos por categoria
-- [ ] Atualizar AdminProducts.tsx para exibir campos específicos por categoria
+- [x] Atualizar AdminProductForm.tsx com novos campos (cooler, cabinet, itemCategory, itemSubcategory)
+- [x] Atualizar ProductDetail.tsx para exibir campos específicos por categoria
+- [x] Atualizar AdminProducts.tsx para exibir campos específicos por categoria
 - [ ] Adicionar filtro de faixa de preço no catálogo público
 - [ ] Implementar busca por nome/modelo de produto
 - [ ] Adicionar avaliações e comentários de clientes
