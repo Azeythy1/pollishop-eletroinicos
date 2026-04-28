@@ -83,6 +83,8 @@
 - [x] Atualizar AdminProductForm.tsx com novos campos (cooler, cabinet, itemCategory, itemSubcategory)
 - [x] Atualizar ProductDetail.tsx para exibir campos específicos por categoria
 - [x] Atualizar AdminProducts.tsx para exibir campos específicos por categoria
+- [x] Criar componente ProductModal com carrossel de fotos e detalhes do produto
+- [x] Integrar ProductModal ao Home.tsx com clique na imagem
 - [ ] Adicionar filtro de faixa de preço no catálogo público
 - [ ] Implementar busca por nome/modelo de produto
 - [ ] Adicionar avaliações e comentários de clientes

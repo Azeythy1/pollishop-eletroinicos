@@ -10,6 +10,7 @@ import { Smartphone, Battery, Wrench, ShieldCheck, LogIn, Settings, ShoppingCart
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState, useMemo, useRef } from "react";
 import { toast } from "sonner";
+import { ProductModal } from "@/components/ProductModal";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -69,6 +70,7 @@ type CartItem = CatalogItem & { quantity: number };
 
 function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (item: CatalogItem) => void }) {
   const [showAllInstallments, setShowAllInstallments] = React.useState(false);
+  const [showProductModal, setShowProductModal] = React.useState(false);
   const primaryPhoto = item.photos.find(p => p.isPrimary) ?? item.photos[0];
   
   const installment12x = item.installmentOptions.find(opt => opt.installments === 12);
@@ -82,9 +84,9 @@ function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (i
       className="rounded-lg border border-border bg-card overflow-hidden hover:shadow-lg transition-shadow"
     >
       {/* Image */}
-      <div className="relative w-full h-24 bg-muted overflow-hidden">
+      <div className="relative w-full h-24 bg-muted overflow-hidden cursor-pointer" onClick={() => setShowProductModal(true)}>
         {primaryPhoto ? (
-          <img src={primaryPhoto.url} alt={item.model} className="w-full h-full object-cover" />
+          <img src={primaryPhoto.url} alt={item.model} className="w-full h-full object-cover hover:scale-105 transition-transform" />
         ) : (
           <div className="flex items-center justify-center h-full">
             <Smartphone className="w-8 h-8 text-muted-foreground/30" />
@@ -179,6 +181,14 @@ function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (i
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Product Modal */}
+    <ProductModal 
+      product={item} 
+      isOpen={showProductModal} 
+      onClose={() => setShowProductModal(false)}
+      onAddToCart={onAddToCart}
+    />
     </>
   );
 }
