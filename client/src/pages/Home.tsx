@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Smartphone, Battery, Wrench, ShieldCheck, LogIn, Settings, ShoppingCart, X, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import { ProductModal } from "@/components/ProductModal";
 
@@ -262,6 +262,40 @@ function CartDrawer({ items, onRemove, onCheckout, isOpen, onClose }: {
 
 export default function Home() {
   const { user } = useAuth();
+  const loginUrl = useMemo(() => getLoginUrl(), []);
+  const isLoginAvailable = loginUrl !== "#";
+  const handleLoginClick = useCallback(
+    async (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+
+      if (!isLoginAvailable) {
+        toast.error(
+          "Login indisponível no momento. Verifique a configuração OAuth."
+        );
+        return;
+      }
+
+      try {
+        const loginOrigin = new URL(loginUrl).origin;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 2000);
+
+        await fetch(loginOrigin, {
+          method: "GET",
+          mode: "no-cors",
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+        window.location.href = loginUrl;
+      } catch {
+        toast.error(
+          "Servidor de login indisponível no momento. Tente novamente mais tarde."
+        );
+      }
+    },
+    [isLoginAvailable, loginUrl]
+  );
   const { data: items, isLoading } = trpc.catalog.list.useQuery();
   const [filterModel, setFilterModel] = useState<string>("all");
   const [filterStorage, setFilterStorage] = useState<string>("all");
@@ -380,12 +414,16 @@ export default function Home() {
                 </Link>
               )}
               {!user && (
-                <a href={getLoginUrl()}>
-                  <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+                <div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2 text-muted-foreground hover:text-foreground"
+                    onClick={handleLoginClick}>
                     <LogIn className="w-4 h-4" />
                     <span className="hidden sm:inline">Entrar</span>
                   </Button>
-                </a>
+                </div>
               )}
             </div>
           </div>
