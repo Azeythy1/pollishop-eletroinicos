@@ -58,6 +58,11 @@ export function CheckoutModal({
     return Array.from(optionsMap.values()).sort((a, b) => a.installments - b.installments);
   }, [items]);
 
+  // Calculate PIX discount (10% off)
+  const pixTotal = React.useMemo(() => {
+    return parseFloat((total * 0.9).toFixed(2));
+  }, [total]);
+
   // Calculate total for selected installment
   const installmentTotal = React.useMemo(() => {
     if (!selectedInstallment) return total;
@@ -103,14 +108,20 @@ export function CheckoutModal({
               />
               <Label htmlFor="pix" className="cursor-pointer flex-1 m-0">
                 <div className="font-semibold text-foreground">PIX - À Vista</div>
-                <div className="text-sm text-muted-foreground">Pague agora e aproveite o melhor preço</div>
+                <div className="text-sm text-green-600 font-medium">10% de desconto!</div>
               </Label>
             </div>
             {paymentMethod === "pix" && (
-              <div className="ml-6 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-foreground">Total:</span>
-                  <span className="font-bold text-lg text-primary">{formatCurrency(total)}</span>
+              <div className="ml-6 space-y-2">
+                <div className="p-3 rounded-lg bg-green-50 border border-green-200">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-foreground">Total original:</span>
+                    <span className="text-sm text-muted-foreground line-through">{formatCurrency(total)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-semibold text-green-700">Com desconto (10%):</span>
+                    <span className="font-bold text-lg text-green-600">{formatCurrency(pixTotal)}</span>
+                  </div>
                 </div>
               </div>
             )}
