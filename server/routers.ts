@@ -99,6 +99,12 @@ export const appRouter = router({
         const rates = await getAllRates(true);
         // Build installment options
         const installmentOptions: Array<{ installments: number; rate: number; total: number; perInstallment: number }> = [];
+        // Configurar opções de parcelamento padrão (12x)
+        if (!item.installmentConfig || (Array.isArray(item.installmentConfig) && item.installmentConfig.length === 0)) {
+          const cashPrice = parseFloat(item.cashPrice as unknown as string);
+          const calc = calcInstallmentPrice(cashPrice, 0, 12);
+          installmentOptions.push({ installments: 12, rate: 0, ...calc });
+        }
         const config = item.installmentConfig as Array<{ installments: number; rateId: number }> | null;
         if (config && Array.isArray(config)) {
           for (const cfg of config) {
@@ -115,31 +121,12 @@ export const appRouter = router({
           id: item.id,
           category: item.category,
           model: item.model,
-          storage: item.storage,
-          color: item.color,
-          batteryHealth: item.batteryHealth,
-          repairs: item.repairs,
-          condition: item.condition,
+          description: item.description,
           cashPrice: parseFloat(item.cashPrice as unknown as string),
-        installmentOptions,
-        photos: photos.map(p => ({ id: p.id, url: p.url, isPrimary: p.isPrimary })),
-        // Include all category fields
-        brand: item.brand,
-        processor: item.processor,
-        ram: item.ram,
-        storageCapacity: item.storageCapacity,
-        gpu: item.gpu,
-        powerSupply: item.powerSupply,
-        screen: item.screen,
-        cooler: item.cooler,
-        cabinet: item.cabinet,
-        itemType: item.itemType,
-        itemCategory: item.itemCategory,
-        itemSubcategory: item.itemSubcategory,
-        specifications: item.specifications,
-        compatibility: item.compatibility,
-        createdAt: item.createdAt,
-      });
+          installmentOptions,
+          photos: photos.map(p => ({ id: p.id, url: p.url, isPrimary: p.isPrimary })),
+          createdAt: item.createdAt,
+        });
     }
     return result;
   }),

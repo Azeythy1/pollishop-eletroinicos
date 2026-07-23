@@ -1,0 +1,44 @@
+{
+  "build_command": "pnpm run build",
+  "capabilities": [
+    "db",
+    "server",
+    "user"
+  ],
+  "dev_command": "pnpm run dev",
+  "env_vars": {
+    "DATABASE_URL": "mysql://2dFZGzF1SvdYTjh.root:etaI85STYa77sP8JZI2L@gateway05.us-east-1.prod.aws.tidbcloud.com:4000/g2oZZXeaRxGwLSxQQYjLvP?ssl={\"rejectUnauthorized\":true}"
+  },
+  "experiments": [
+    "no_db_push"
+  ],
+  "git_remote": {
+    "repo_url": "s3://vida-prod-gitrepo/webdev-git/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP",
+    "access_key_id": "ASIAZV3A2ECZJXITFMC4",
+    "secret_access_key": "GT3ipcMbWZkCqrlshjqUC32CDLXRS04ShbpP5GUh",
+    "session_token": "IQoJb3JpZ2luX2VjEBoaCXVzLWVhc3QtMSJHMEUCIDjipa0ZNJOwAMiJO5hA7EmZxA+fyOmiHMdEeQG2S2XzAiEAuIfN0BTh1OV1IWokz90J9/SFvRbJwL6wQ0vVPjIHlCoq/wMI4///////////ARAEGgw2NjUzODYwOTg4NjYiDApY6ZEpfu2ih67kXirTAyg0P6eHYPL7t69R7fYEwRx/nWxDyYS71e+FVK7VfyYKnajwk4faHq5so0cF74wbrVtF7H3/5oWe2DZtAtH3mpS5gKTTS0UpR3m2X9QS1ZHqUWYS4LicF6ZCmaQcZFqorOZg8sy+58e94YlVFCMRiAyp2MSlXRxL7LwUibK/KTnv3GkCAOtzxZGUqcq21bXTtXJF8CsYV4O5SJ/gmYPUyvrwq7yolJ/1LQsvN6SU1QEZppiWH1nGatav2EkQ7HSKkNnumfoFlsy92qJbHu2btiibs0mNIeVRqDTqitf3OE3ttEUBBAikbjY6HA+nM6SlSyTbs/IipahUtcmwzbpxRNqRQPI9cHK+nbrZHkrvJ0eiX9iJ33GaunhoxGMsczJbpyCyKYEDSBfdqqAyECO4SCoJC08UYnqKZ0knE+Ha/ZeaILrkxaBGZIUPtolu0EVAwc+idQFJQQYN12c2Uo76039JFHDMfPYmWXBSSmdPN9bmBdvd/LAOxeleazCT+IBDyafv+bCIw9QK8sBsOE/uKH9/bmJAokzgG+P6g9hee0ywTQkdoNrLuWqaxlkssGciY+LcF4o6I5S0mxjn+1XYvLuuMbricrbLYHz8kUG6vtg+K400MM3dhdMGOp0BUBUadaPNOYRc3IhZpgpKUONkQf6VOy14plIHxNASalClJP2t3CHxOesDYEMS2G5SuiAXguyZqKXV3Xdm91l2tj3ifHuC0ksZX0A7GIsSFDuXl4gEr8FmZE6tIg9NC58k5NQvkaHFPpEEbi+tfFaxVsdcHSYpu7AjAvnT0+CQZt4iPB7YjJjLQfsL/ozkrac/TQXG2bsFtzggAa6WIQ==",
+    "expiration": "2026-07-23T13:30:53.000Z",
+    "backend": "GIT_BACKEND_S3"
+  },
+  "name": "iphone-seminovos",
+  "path": "/home/ubuntu/iphone-seminovos",
+  "port": 3000,
+  "secrets": {
+    "BUILT_IN_FORGE_API_KEY": "j9Z3AjZaDZS8ptCSgBLRJR",
+    "BUILT_IN_FORGE_API_URL": "https://forge.manus.ai",
+    "JWT_SECRET": "jaVDkwxBsF8S454F2fNCBS",
+    "OAUTH_SERVER_URL": "https://api.manus.im",
+    "OWNER_NAME": "Rodrigo Oliveira",
+    "OWNER_OPEN_ID": "icXkb5YAPTZXAKgqDYNqAS",
+    "VITE_ANALYTICS_ENDPOINT": "https://manus-analytics.com",
+    "VITE_ANALYTICS_WEBSITE_ID": "2b9ac8b5-388e-469e-a728-8914681cf67b",
+    "VITE_APP_ID": "g2oZZXeaRxGwLSxQQYjLvP",
+    "VITE_APP_LOGO": "https://files.manuscdn.com/user_upload_by_module/web_dev_logo/310519663483531727/SUQBAGFgaHmcrIfA.png",
+    "VITE_APP_TITLE": "PolliShopEletronicos",
+    "VITE_FRONTEND_FORGE_API_KEY": "R6a5suLzZ4LwnA6USCG6qJ",
+    "VITE_FRONTEND_FORGE_API_URL": "https://forge.manus.ai",
+    "VITE_OAUTH_PORTAL_URL": "https://manus.im"
+  },
+  "template_id": "web-db-user",
+  "test_command": "pnpm test"
+}

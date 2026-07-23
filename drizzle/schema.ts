@@ -26,45 +26,20 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 export const categoryEnum = mysqlEnum("category", [
-  "Smartphones",
-  "Tablet",
-  "Notebook",
-  "Computadores",
-  "Periféricos",
-  "Acessórios",
+  "Eletrônicos",
+  "Vestiário",
+  "Fitness",
+  "Moda Íntima",
+  "Variados",
 ]);
 
 export const iphones = mysqlTable("iphones", {
   id: int("id").autoincrement().primaryKey(),
-  category: categoryEnum.default("Smartphones").notNull(),
+  category: categoryEnum.default("Eletrônicos").notNull(),
   
   // Campos genéricos (todos os produtos)
   model: varchar("model", { length: 64 }).notNull(),
-  color: varchar("color", { length: 64 }),
-  condition: mysqlEnum("condition", ["excelente", "bom", "regular"]).default("bom").notNull(),
-  
-  // Campos Smartphones/Tablet
-  storage: varchar("storage", { length: 16 }), // 64GB, 128GB, 256GB, 512GB, 1TB
-  batteryHealth: int("batteryHealth"), // percentage 0-100
-  repairs: text("repairs"), // description of repairs done
-  
-  // Campos Notebook/Computadores
-  processor: varchar("processor", { length: 128 }), // Intel i5, AMD Ryzen 5, etc
-  ram: varchar("ram", { length: 32 }), // 8GB, 16GB, 32GB, etc
-  storageCapacity: varchar("storageCapacity", { length: 128 }), // SSD 256GB, HDD 1TB, etc
-  gpu: varchar("gpu", { length: 128 }), // NVIDIA GTX, Intel Iris, etc
-  powerSupply: varchar("powerSupply", { length: 64 }), // 500W, 650W, etc (Computadores)
-  screen: varchar("screen", { length: 64 }), // 15.6", 17", etc (Notebook)
-  cooler: varchar("cooler", { length: 128 }), // Cooler do processador (Computadores)
-  cabinet: varchar("cabinet", { length: 128 }), // Gabinete (Computadores)
-  
-  // Campos Periféricos/Acessórios
-  itemType: varchar("itemType", { length: 64 }), // mouse, teclado, monitor, capa, etc
-  itemCategory: mysqlEnum("itemCategory", ["Informática", "Acessórios"]), // Categoria para Periféricos
-  itemSubcategory: varchar("itemSubcategory", { length: 64 }), // mouse, teclado, mousepad, cabo, carregador, power bank, mag safe
-  brand: varchar("brand", { length: 64 }), // marca do produto
-  specifications: text("specifications"), // especificações adicionais
-  compatibility: varchar("compatibility", { length: 256 }), // compatibilidade (ex: iPhone 13-15)
+  description: text("description").notNull(), // Descrição completa do produto
 
   // Pricing
   costPrice: decimal("costPrice", { precision: 10, scale: 2, mode: "number" }).notNull(),
@@ -76,8 +51,7 @@ export const iphones = mysqlTable("iphones", {
   installmentConfig: json("installmentConfig"),
 
   // Status
-  status: mysqlEnum("status", ["draft", "published"]).default("draft").notNull(),
-  notes: text("notes"),
+  status: mysqlEnum("status", ["draft", "published"]).default("published").notNull(),
 
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -85,7 +59,7 @@ export const iphones = mysqlTable("iphones", {
 
 export type Iphone = typeof iphones.$inferSelect;
 export type InsertIphone = typeof iphones.$inferInsert;
-export type Category = "Smartphones" | "Tablet" | "Notebook" | "Computadores" | "Periféricos" | "Acessórios";
+export type Category = "Eletrônicos" | "Vestiário" | "Fitness" | "Moda Íntima" | "Variados";
 
 export const iphonePhotos = mysqlTable("iphone_photos", {
   id: int("id").autoincrement().primaryKey(),

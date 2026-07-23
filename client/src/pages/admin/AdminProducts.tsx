@@ -152,8 +152,7 @@ export default function AdminProducts() {
                       </div>
                       <h3 className="font-semibold text-foreground">{product.model}</h3>
                     </div>
-                    {product.storage && <Badge variant="secondary" className="text-xs">{product.storage}</Badge>}
-                    {product.brand && <Badge variant="outline" className="text-xs">{product.brand}</Badge>}
+                    <Badge variant="secondary" className="text-xs">{product.category}</Badge>
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
                       product.status === "published"
                         ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
@@ -163,21 +162,7 @@ export default function AdminProducts() {
                     </span>
                   </div>
                   <div className="flex items-center gap-4 mt-1.5 text-xs text-muted-foreground flex-wrap">
-                    {product.batteryHealth !== null && (
-                      <span className="flex items-center gap-1">
-                        <Battery className="w-3 h-3" /> {product.batteryHealth}%
-                      </span>
-                    )}
-                    {product.processor && (
-                      <span className="flex items-center gap-1">
-                        <Cpu className="w-3 h-3" /> {product.processor}
-                      </span>
-                    )}
-                    {product.repairs && (
-                      <span className="flex items-center gap-1">
-                        <Wrench className="w-3 h-3" /> Com reparos
-                      </span>
-                    )}
+                    <span className="text-muted-foreground/60 line-clamp-1">{product.description}</span>
                     <span className="text-muted-foreground/60">Custo: {formatCurrency(product.costPrice)}</span>
                     <span className="font-medium text-primary">Venda: {formatCurrency(product.cashPrice)}</span>
                   </div>
