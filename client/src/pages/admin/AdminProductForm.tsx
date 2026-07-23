@@ -85,11 +85,11 @@ export default function AdminProductForm() {
           try {
             const fileData = await photo.file.arrayBuffer();
             const bytes = new Uint8Array(fileData);
-            let base64 = '';
+            let binaryString = '';
             for (let j = 0; j < bytes.length; j++) {
-              base64 += String.fromCharCode(bytes[j]);
+              binaryString += String.fromCharCode(bytes[j]);
             }
-            const base64String = btoa(base64);
+            const base64String = btoa(binaryString);
             
             await uploadMutation.mutateAsync({
               iphoneId: createdProduct.id,
@@ -119,11 +119,11 @@ export default function AdminProductForm() {
           try {
             const fileData = await photo.file.arrayBuffer();
             const bytes = new Uint8Array(fileData);
-            let base64 = '';
+            let binaryString = '';
             for (let j = 0; j < bytes.length; j++) {
-              base64 += String.fromCharCode(bytes[j]);
+              binaryString += String.fromCharCode(bytes[j]);
             }
-            const base64String = btoa(base64);
+            const base64String = btoa(binaryString);
             
             await uploadMutation.mutateAsync({
               iphoneId: productId!,
