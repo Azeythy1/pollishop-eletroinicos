@@ -50,33 +50,13 @@ function calcInstallmentPrice(cashPrice: number, rate: number, installments: num
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 const iphoneInput = z.object({
-  category: z.enum(CATEGORIES).default("Lingerie"),
-  model: z.string().min(1),
-  storage: z.string().optional().nullable(),
-  color: z.string().optional(),
-  batteryHealth: z.number().int().min(0).max(100).optional().nullable(),
-  repairs: z.string().optional().nullable(),
-  condition: z.enum(["excelente", "bom", "regular"]).default("bom"),
-  costPrice: z.number().positive(),
+  category: z.enum(CATEGORIES),
+  model: z.string().min(1, "Modelo é obrigatório"),
+  description: z.string().min(1, "Descrição é obrigatória"),
+  costPrice: z.number().positive("Preço de custo deve ser positivo"),
   priceAdjustType: z.enum(["percentage", "fixed"]).default("percentage"),
   priceAdjustValue: z.number().min(0).default(0),
-  processor: z.string().optional().nullable(),
-  ram: z.string().optional().nullable(),
-  storageCapacity: z.string().optional().nullable(),
-  gpu: z.string().optional().nullable(),
-  powerSupply: z.string().optional().nullable(),
-  screen: z.string().optional().nullable(),
-  itemType: z.string().optional().nullable(),
-  brand: z.string().optional().nullable(),
-  specifications: z.string().optional().nullable(),
-  compatibility: z.string().optional().nullable(),
-  cooler: z.string().optional().nullable(),
-  cabinet: z.string().optional().nullable(),
-  itemCategory: z.enum(["Informática", "Acessórios"]).optional().nullable(),
-  itemSubcategory: z.string().optional().nullable(),
-  installmentConfig: z.array(z.object({ installments: z.number(), rateId: z.number() })).optional(),
-  status: z.enum(["draft", "published"]).default("draft"),
-  notes: z.string().optional().nullable(),
+  status: z.enum(["draft", "published"]).default("published"),
 });
 
 export const appRouter = router({
@@ -192,17 +172,15 @@ export const appRouter = router({
 
     createIphone: adminProcedure.input(iphoneInput).mutation(async ({ input }) => {
       const cashPrice = calcCashPrice(input.costPrice, input.priceAdjustType, input.priceAdjustValue);
-      const { installmentConfig, ...rest } = input;
       await createIphone({
-        ...rest,
         category: input.category as any,
-        color: input.color ?? null,
-        repairs: input.repairs ?? null,
+        model: input.model,
+        description: input.description,
         costPrice: String(input.costPrice) as unknown as number,
+        priceAdjustType: input.priceAdjustType,
         priceAdjustValue: String(input.priceAdjustValue) as unknown as number,
         cashPrice: String(cashPrice) as unknown as number,
-        installmentConfig: installmentConfig ?? null,
-        notes: input.notes ?? null,
+        status: input.status,
       } as any);
       // Get last inserted
       const all = await getAllIphones(true);
@@ -222,9 +200,6 @@ export const appRouter = router({
         updateData.costPrice = costPrice.toFixed(2);
         updateData.priceAdjustValue = adjustValue.toFixed(2);
         updateData.cashPrice = cashPrice.toFixed(2);
-        if (input.data.installmentConfig !== undefined) {
-          updateData.installmentConfig = input.data.installmentConfig;
-        }
         await updateIphone(input.id, updateData as Parameters<typeof updateIphone>[1]);
         return { success: true };
       }),
