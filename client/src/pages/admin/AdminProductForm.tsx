@@ -45,6 +45,8 @@ export default function AdminProductForm() {
     { enabled: !!productId }
   );
 
+  const uploadMutation = trpc.upload.photo.useMutation();
+
   const [photos, setPhotos] = useState<Array<{ id?: number; url: string; isPrimary: boolean; file?: File; uploading?: boolean }>>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
 
@@ -209,25 +211,16 @@ export default function AdminProductForm() {
                     setUploadingPhotos(true);
                     try {
                       for (const file of files) {
-                        const formData = new FormData();
-                        formData.append("file", file);
-                        
-                        const response = await fetch("/api/upload", {
-                          method: "POST",
-                          body: formData,
-                        });
-                        
-                        if (!response.ok) throw new Error("Upload falhou");
-                        const data = await response.json();
-                        
+                        const result = await uploadMutation.mutateAsync({ file } as any);
                         setPhotos(prev => [...prev, {
-                          url: data.url,
+                          url: result.url,
                           isPrimary: prev.length === 0,
                           file,
                         }]);
                       }
                       toast.success("Fotos adicionadas com sucesso");
                     } catch (error) {
+                      console.error('Upload error:', error);
                       toast.error("Erro ao fazer upload das fotos");
                     } finally {
                       setUploadingPhotos(false);

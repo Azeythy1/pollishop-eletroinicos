@@ -314,6 +314,18 @@ export const appRouter = router({
     }),
   }),
 
+  // Admin: Photo upload
+  upload: router({
+    photo: adminProcedure
+      .input(z.object({ file: z.instanceof(File) }))
+      .mutation(async ({ input }) => {
+        const buffer = await input.file.arrayBuffer();
+        const fileKey = `products/${nanoid()}-${input.file.name}`;
+        const { url } = await storagePut(fileKey, Buffer.from(buffer), input.file.type);
+        return { url, fileKey };
+      }),
+  }),
+
   // Admin: Database migrations
   migrations: router({
     runMigrations: adminProcedure.mutation(async () => {
