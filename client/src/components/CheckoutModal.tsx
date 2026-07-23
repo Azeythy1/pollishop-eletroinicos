@@ -1,10 +1,9 @@
-import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { MessageCircle, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
+import React, { useState } from "react";
 
 export type PaymentMethod = "pix" | "installment";
 
@@ -85,9 +84,24 @@ export function CheckoutModal({
         <div className="space-y-6">
           {/* PIX Option */}
           <div className="space-y-3">
-            <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setPaymentMethod("pix")}>
-              <RadioGroupItem value="pix" id="pix" checked={paymentMethod === "pix"} />
-              <Label htmlFor="pix" className="cursor-pointer flex-1">
+            <div 
+              className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border-2 transition-all"
+              onClick={() => setPaymentMethod("pix")}
+              style={{
+                borderColor: paymentMethod === "pix" ? "hsl(var(--primary))" : "hsl(var(--border))",
+                backgroundColor: paymentMethod === "pix" ? "hsl(var(--primary) / 0.05)" : "transparent"
+              }}
+            >
+              <input
+                type="radio"
+                id="pix"
+                name="payment"
+                value="pix"
+                checked={paymentMethod === "pix"}
+                onChange={() => setPaymentMethod("pix")}
+                className="w-4 h-4"
+              />
+              <Label htmlFor="pix" className="cursor-pointer flex-1 m-0">
                 <div className="font-semibold text-foreground">PIX - À Vista</div>
                 <div className="text-sm text-muted-foreground">Pague agora e aproveite o melhor preço</div>
               </Label>
@@ -104,9 +118,24 @@ export function CheckoutModal({
 
           {/* Installment Option */}
           <div className="space-y-3">
-            <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setPaymentMethod("installment")}>
-              <RadioGroupItem value="installment" id="installment" checked={paymentMethod === "installment"} />
-              <Label htmlFor="installment" className="cursor-pointer flex-1">
+            <div 
+              className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border-2 transition-all"
+              onClick={() => setPaymentMethod("installment")}
+              style={{
+                borderColor: paymentMethod === "installment" ? "hsl(var(--primary))" : "hsl(var(--border))",
+                backgroundColor: paymentMethod === "installment" ? "hsl(var(--primary) / 0.05)" : "transparent"
+              }}
+            >
+              <input
+                type="radio"
+                id="installment"
+                name="payment"
+                value="installment"
+                checked={paymentMethod === "installment"}
+                onChange={() => setPaymentMethod("installment")}
+                className="w-4 h-4"
+              />
+              <Label htmlFor="installment" className="cursor-pointer flex-1 m-0">
                 <div className="font-semibold text-foreground">Parcelado</div>
                 <div className="text-sm text-muted-foreground">Divida em até {allInstallmentOptions.length} vezes</div>
               </Label>
