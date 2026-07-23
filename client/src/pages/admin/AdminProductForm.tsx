@@ -211,7 +211,21 @@ export default function AdminProductForm() {
                     setUploadingPhotos(true);
                     try {
                       for (const file of files) {
-                        const result = await uploadMutation.mutateAsync({ file } as any);
+                        const fileData = await file.arrayBuffer();
+                        const base64 = Buffer.from(fileData).toString('base64');
+                        
+                        const response = await fetch("/api/upload", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            file: { name: file.name, type: file.type },
+                            fileData: base64,
+                          }),
+                        });
+                        
+                        if (!response.ok) throw new Error("Upload falhou");
+                        const result = await response.json();
+                        
                         setPhotos(prev => [...prev, {
                           url: result.url,
                           isPrimary: prev.length === 0,
