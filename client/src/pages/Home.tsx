@@ -25,6 +25,7 @@ import { useState, useMemo, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import { ProductModal } from "@/components/ProductModal";
 import { GalleryCarousel } from "@/components/GalleryCarousel";
+import { CheckoutModal, type PaymentMethod, type InstallmentOption } from "@/components/CheckoutModal";
 import {
   CATEGORIES,
   SUBCATEGORIES,
@@ -309,6 +310,7 @@ export default function Home() {
   const [priceMax, setPriceMax] = useState<number>(10000);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -367,6 +369,11 @@ export default function Home() {
 
   const handleCheckout = () => {
     if (cartItems.length === 0) return;
+    setShowCheckout(true);
+  };
+
+  const handleCheckoutConfirm = (paymentMethod: PaymentMethod, selectedInstallment?: InstallmentOption) => {
+    if (cartItems.length === 0) return;
     const total = cartItems.reduce((sum, item) => sum + item.cashPrice * item.quantity, 0);
     const itemsList = cartItems
       .map(
@@ -374,10 +381,21 @@ export default function Home() {
           `${item.model} (Qtd: ${item.quantity}) - ${formatCurrency(item.cashPrice * item.quantity)}`
       )
       .join("%0A");
-    const message = `Olá! Gostaria de fazer uma compra:%0A%0A${itemsList}%0A%0ATotal: ${formatCurrency(total)}`;
+    
+    let paymentInfo = "";
+    if (paymentMethod === "pix") {
+      paymentInfo = `%0A%0A💳 Forma de Pagamento: PIX (à vista)%0ATotal: ${formatCurrency(total)}`;
+    } else if (selectedInstallment) {
+      const installmentTotal = total * (1 + selectedInstallment.rate / 100);
+      const perInstallment = installmentTotal / selectedInstallment.installments;
+      paymentInfo = `%0A%0A💳 Forma de Pagamento: Parcelado%0AParcelas: ${selectedInstallment.installments}x de ${formatCurrency(perInstallment)}%0ATotal com juros: ${formatCurrency(installmentTotal)}`;
+    }
+    
+    const message = `Olá! Gostaria de fazer uma compra:%0A%0A${itemsList}${paymentInfo}`;
     window.open(`https://wa.me/5535998782791?text=${message}`, "_blank");
     setCartItems([]);
     setShowCart(false);
+    setShowCheckout(false);
     toast.success("Redirecionando para WhatsApp...");
   };
 
@@ -577,6 +595,14 @@ export default function Home() {
         onCheckout={handleCheckout}
         isOpen={showCart}
         onClose={() => setShowCart(false)}
+      />
+
+      <CheckoutModal
+        isOpen={showCheckout}
+        onClose={() => setShowCheckout(false)}
+        items={cartItems}
+        total={cartItems.reduce((sum, item) => sum + item.cashPrice * item.quantity, 0)}
+        onConfirm={handleCheckoutConfirm}
       />
     </div>
   );

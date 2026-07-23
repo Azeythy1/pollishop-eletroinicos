@@ -85,8 +85,8 @@
 - [x] Atualizar AdminProducts.tsx para exibir campos específicos por categoria
 - [x] Criar componente ProductModal com carrossel de fotos e detalhes do produto
 - [x] Integrar ProductModal ao Home.tsx com clique na imagem
-- [ ] Adicionar filtro de faixa de preço no catálogo público
-- [ ] Implementar busca por nome/modelo de produto
+- [x] Adicionar filtro de faixa de preço no catálogo público
+- [x] Implementar busca por nome/modelo de produto
 - [ ] Adicionar avaliações e comentários de clientes
 - [ ] Implementar sistema de notificações de novos produtos
 
@@ -116,8 +116,15 @@
 
 
 ## Layout do Catálogo - Reformulação
-- [ ] Redesenhar grid com imagens menores e padronizadas
+- [x] Redesenhar grid com imagens menores e padronizadas
 - [ ] Implementar toggle entre vista em lista e vista em grade
-- [ ] Reduzir altura dos cards de produtos
-- [ ] Mostrar descrição compacta com campos principais da categoria
-- [ ] Padronizar tamanho das imagens (ex: 200x200px ou 250x250px)
+- [x] Reduzir altura dos cards de produtos
+- [x] Mostrar descrição compacta com campos principais da categoria
+- [x] Padronizar tamanho das imagens (ex: 200x200px ou 250x250px)
+
+## Sistema de Taxas de Parcelamento - Nova Implementação
+- [x] Criar painel admin para gerenciar taxas (CRUD)
+- [x] Adicionar campo de taxas ao formulário de produtos
+- [x] Implementar seleção de forma de pagamento no carrinho (PIX/Parcelado)
+- [x] Criar modal de parcelamento com cálculo de taxas
+- [x] Testar fluxo completo de pagamento
