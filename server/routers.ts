@@ -57,6 +57,10 @@ const iphoneInput = z.object({
   priceAdjustType: z.enum(["percentage", "fixed"]).default("percentage"),
   priceAdjustValue: z.number().min(0).default(0),
   status: z.enum(["draft", "published"]).default("published"),
+  installmentConfig: z.array(z.object({
+    installments: z.number().int().min(2),
+    rateId: z.number().int(),
+  })).optional(),
 });
 
 export const appRouter = router({
@@ -181,6 +185,7 @@ export const appRouter = router({
         priceAdjustValue: String(input.priceAdjustValue) as unknown as number,
         cashPrice: String(cashPrice) as unknown as number,
         status: input.status,
+        installmentConfig: input.installmentConfig ? JSON.stringify(input.installmentConfig) : undefined,
       } as any);
       // Get last inserted
       const all = await getAllIphones(true);
@@ -200,6 +205,9 @@ export const appRouter = router({
         updateData.costPrice = costPrice.toFixed(2);
         updateData.priceAdjustValue = adjustValue.toFixed(2);
         updateData.cashPrice = cashPrice.toFixed(2);
+        if (input.data.installmentConfig) {
+          updateData.installmentConfig = JSON.stringify(input.data.installmentConfig);
+        }
         await updateIphone(input.id, updateData as Parameters<typeof updateIphone>[1]);
         return { success: true };
       }),

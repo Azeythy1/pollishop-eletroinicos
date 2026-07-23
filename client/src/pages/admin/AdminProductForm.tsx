@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, Upload, X, Star, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useEffect } from "react";
@@ -25,6 +26,10 @@ const productSchema = z.object({
   priceAdjustType: z.enum(["percentage", "fixed"]).optional(),
   priceAdjustValue: z.number().min(0).optional(),
   status: z.enum(["draft", "published"]).optional(),
+  installmentConfig: z.array(z.object({
+    installments: z.number().int().min(2),
+    rateId: z.number().int(),
+  })).optional(),
 }).strict();
 
 type FormData = z.infer<typeof productSchema>;
@@ -48,6 +53,10 @@ export default function AdminProductForm() {
 
   const [photos, setPhotos] = useState<Array<{ id?: number; url: string; isPrimary: boolean; file?: File; uploading?: boolean }>>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [selectedRates, setSelectedRates] = useState<Array<{ installments: number; rateId: number }>>([]);
+
+  // Carregar taxas disponíveis
+  const { data: rates = [] } = trpc.admin.listRates.useQuery();
 
   const form = useForm<any>({
     mode: "onBlur",
@@ -57,12 +66,14 @@ export default function AdminProductForm() {
       priceAdjustType: "percentage",
       priceAdjustValue: 0,
       status: "published", // Status padrão: publicado
+      installmentConfig: [],
     },
   });
 
   // Carregar dados do produto existente
   useEffect(() => {
     if (existingProduct) {
+      const config = existingProduct.installmentConfig ? JSON.parse(existingProduct.installmentConfig as string) : [];
       form.reset({
         category: existingProduct.category as any,
         model: existingProduct.model,
@@ -71,7 +82,9 @@ export default function AdminProductForm() {
         priceAdjustType: existingProduct.priceAdjustType as any,
         priceAdjustValue: existingProduct.priceAdjustValue,
         status: existingProduct.status as any,
-      });
+        installmentConfig: config,
+      } as any);
+      setSelectedRates(config);
       setPhotos(existingProduct.photos.map(p => ({ ...p, isPrimary: p.isPrimary })));
     }
   }, [existingProduct, form]);
@@ -156,12 +169,21 @@ export default function AdminProductForm() {
       ...data,
       costPrice: data.costPrice,
       priceAdjustValue: data.priceAdjustValue,
+      installmentConfig: selectedRates,
     };
 
     if (isEditing && productId) {
       updateMutation.mutate({ id: productId, data: submitData });
     } else {
       createMutation.mutate(submitData);
+    }
+  };
+
+  const handleRateToggle = (rate: any, checked: boolean) => {
+    if (checked) {
+      setSelectedRates([...selectedRates, { installments: rate.installments, rateId: rate.id }]);
+    } else {
+      setSelectedRates(selectedRates.filter(r => r.rateId !== rate.id));
     }
   };
 
@@ -329,6 +351,28 @@ export default function AdminProductForm() {
                   </Select>
                 </div>
               </div>
+            </div>
+
+            {/* Opções de Parcelamento */}
+            <div className="space-y-4">
+              <Label>Opções de Parcelamento</Label>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {rates.map((rate: any) => (
+                  <div key={rate.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`rate-${rate.id}`}
+                      checked={selectedRates.some(r => r.rateId === rate.id)}
+                      onCheckedChange={(checked) => handleRateToggle(rate, checked as boolean)}
+                    />
+                    <Label htmlFor={`rate-${rate.id}`} className="cursor-pointer text-sm">
+                      {rate.installments}x {rate.rate > 0 ? `(+${rate.rate}%)` : "(s/ juros)"}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+              {rates.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nenhuma taxa de parcelamento configurada. Acesse o painel de taxas para criar.</p>
+              )}
             </div>
 
             {/* Botões */}
