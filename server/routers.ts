@@ -309,6 +309,26 @@ export const appRouter = router({
       }),
   }),
 
+  // Stripe checkout
+  checkout: router({
+    createSession: protectedProcedure
+      .input(z.object({
+        items: z.array(z.object({
+          id: z.number(),
+          model: z.string(),
+          quantity: z.number(),
+          price: z.number(),
+        })),
+        total: z.number(),
+        paymentMethod: z.enum(["pix", "installment"]),
+        installments: z.number().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Placeholder - will be implemented with Stripe
+        return { sessionId: null, url: null };
+      }),
+  }),
+
   // Admin: Database migrations
   migrations: router({
     runMigrations: adminProcedure.mutation(async () => {

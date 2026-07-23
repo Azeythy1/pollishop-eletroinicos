@@ -7,17 +7,19 @@
   ],
   "dev_command": "pnpm run dev",
   "env_vars": {
-    "DATABASE_URL": "mysql://2dFZGzF1SvdYTjh.root:etaI85STYa77sP8JZI2L@gateway05.us-east-1.prod.aws.tidbcloud.com:4000/g2oZZXeaRxGwLSxQQYjLvP?ssl={\"rejectUnauthorized\":true}"
+    "DATABASE_URL": "mysql://2dFZGzF1SvdYTjh.root:etaI85STYa77sP8JZI2L@gateway05.us-east-1.prod.aws.tidbcloud.com:4000/g2oZZXeaRxGwLSxQQYjLvP?ssl={\"rejectUnauthorized\":true}",
+    "DRIZZLE_DATABASE_URL": "mysql://2dFZGzF1SvdYTjh.root:etaI85STYa77sP8JZI2L@gateway05.us-east-1.prod.aws.tidbcloud.com:4000/g2oZZXeaRxGwLSxQQYjLvP?ssl={\"rejectUnauthorized\":true}",
+    "MANUS_WEBDEV_PROJECT_ID": "g2oZZXeaRxGwLSxQQYjLvP"
   },
   "experiments": [
     "no_db_push"
   ],
   "git_remote": {
     "repo_url": "s3://vida-prod-gitrepo/webdev-git/310519663483531727/g2oZZXeaRxGwLSxQQYjLvP",
-    "access_key_id": "ASIAZV3A2ECZOF5EBPZX",
-    "secret_access_key": "oqjV9RzrIXcKTToYklNm0A3aNVd68vf8vLfXyl52",
-    "session_token": "IQoJb3JpZ2luX2VjECYaCXVzLWVhc3QtMSJHMEUCIQCjlqF4RXVWnsd73HwU8R19+V80QOQSFQhzNx8NK8eRUAIgeQasw17gGc3w0qtx6BNs1uwB7JCtMgbRv8lywBqRY58q/wMI7v//////////ARAEGgw2NjUzODYwOTg4NjYiDEONw3KEVeu3dXDqvirTAwUVJQYMb5e/zRw1WrgW5ltab78c+1Q68FLNXy07bJ2/AZ5PartulfDGmIWfmN7JeOSspuO5r9vCgeEU0+VOpTnwmomUMsLrbUz7wo9NPJBkDHtGwC5j8z+nn03rJOFMGIqCObxUcptUC586gvXauETu1dHzu3ZBIiYE+hWH4S+AhCU3YMv69kPjvyI4focmYfW0onXrmEeEH4f4zPFDr+ePSvca8u3DJTvFsINpRMpwJR/eWjIkGL1QXU7295tcnByI74ymIkRtDQHP+px/+vZ9F0FNZsLa+mN+nabqbH7qT16HZ6rYdsx2kf4jv/fBqbspFP3/k9vSpp/t7KuPUObQ1V6xJcEir/8QYC4M6+TCWSF/GzjZ/k8SC0nVmsQyysnixbRfPIJdeS0ZRk7s47AF4DS8KITB87qjxWghJyFKWhZ8xq2um7vFtmcFqDHAVSeql6X5Zj0DRJ5wpMVQ5bwEbleozysDpvzkBVWTvsJpWQaPaHJyfHKS+F8g28PALkV1cFNS/PvFFp/Zsoi35Extc0JuOHaRk0Vks714Fgk0DFebWpor9qs4b2wbW42ECh/3+JxU2yHKDhVqGLIfNYDVzs+BLzJEkGcpVF4HyospY7AnMOyliNMGOp0BXTgSWwjkK2vCm4+T28aOG6UHRLcn8bRazciACail0joJJXO0HNojbWF8UVxkpE2OJ6VaeXlcTOvRihr1GQcycnfdMnEvfq9wWIrc6Lt8ureQ1UHTxTwQZx3F70KChJVs2KKr5THv1xqfS+8KDblOAR9HAqWX2A6dTYlBBy4K9MsSVGVFPgZjXLUd8gWR2dwDzHmcAGFFRnHc+Pqi9w==",
-    "expiration": "2026-07-24T01:11:08.000Z",
+    "access_key_id": "ASIAZV3A2ECZAHO63RVI",
+    "secret_access_key": "9scCuHkSBlhMwpmI8TrukqUOQL6Mqo8tgSRFJ6qQ",
+    "session_token": "IQoJb3JpZ2luX2VjECwaCXVzLWVhc3QtMSJGMEQCIF0isdbKHXC2K9L8rqdOUidyccFNyhmRkQn+KwuSuj98AiAfnYaivNHYUOqmoFeYj+CXcsYXu50L7GlR9fb6rrfXuSr/Awj0//////////8BEAQaDDY2NTM4NjA5ODg2NiIMdCQN14av5pwjIAotKtMDpYVM4h2zJmHjxsIq4hl1COGoVedkIWKkDsFhELu4mkCjeZjR2r93SZAt/pieBBNHjei08f5oonwl3jeWNSAW01VEXR0FpJIPCEV1CC1XPGtXD9965CVcTM9MTyRd1aXW+VYWjNfJN2eQY5JCi9OlD/cdasonfAmA7pcAH9lt3TnMGLovttbUDp5gpxfjIfSHiIsKJjB/LhzoNOIDYA/fz8n1Ex1B/O1wlD5iaRu6WpXwlT7cHD4hhzhGZb/HxSyCpbQr4AGTEVCgaJ76sfRrJr/+AD/6d/YqSX1OlacNbsR8fKq4R74SHcysFZkbqMdauSrFPKFrbEMaiO63+urmjgEfEVT82uf0apjU28EFn3meJWUWJhGdqbDUHD1zpJbAHRqKpA9JXuupxjPQyejdunmZrogzJNLH1NxWM35N5f3sgUGx8NWfpTMeJBphkUqwsp4RJIk1zO1cxFlMiRnEruuVgLIfPQHFjqbZgKNyQgrM52c7W4tE7fFC8g38E6VVA3c/JlhgcFVQqica+OGp+9gM1C+h0yuFR0w11UTqVK8aT3R2nqoWxyaL5CLU2LYosLUtoHDkl6O5lUwBDkMl8vcgJGKDfkqApjSIyvzeu8ybT2wwwdOJ0wY6ngHCCD5EMAg+PdhG7Kx5xgpi9Yke5wIGmdhbgbQ+rYsTrbnAk8Nvt25OyfI5EN1hv4sPNFZXztSIeiyYsRHEh0usWyvVl2ZwX3VGdCmpdm3kJ+EWCZt4l0aKsmblSkW98gjLgXq3rTqO9CkL/aRGdFtVpENao6w4oy5HiVMVSAKhfoeriSII5L1q+AN1ziNxf7LZDhM2K87c1gMCpaav6A==",
+    "expiration": "2026-07-24T07:21:37.000Z",
     "backend": "GIT_BACKEND_S3"
   },
   "name": "iphone-seminovos",
@@ -30,6 +32,8 @@
     "OAUTH_SERVER_URL": "https://api.manus.im",
     "OWNER_NAME": "Rodrigo Oliveira",
     "OWNER_OPEN_ID": "icXkb5YAPTZXAKgqDYNqAS",
+    "STRIPE_SECRET_KEY": "sk_test_51Tw6mQBfFYiLlLtNSoA055Ep3qmQDijUrVUFf7LqjgiWtDjCiq7dxNcvZQrMIRBiHkrs7AEhIBEyA1T93N4XAefV001Bt84o5o",
+    "STRIPE_WEBHOOK_SECRET": "whsec_MRyaQcfS6MbUrPdjF3JhkUOM3x1WOizZ",
     "VITE_ANALYTICS_ENDPOINT": "https://manus-analytics.com",
     "VITE_ANALYTICS_WEBSITE_ID": "2b9ac8b5-388e-469e-a728-8914681cf67b",
     "VITE_APP_ID": "g2oZZXeaRxGwLSxQQYjLvP",
@@ -37,7 +41,8 @@
     "VITE_APP_TITLE": "PolliShopEletronicos",
     "VITE_FRONTEND_FORGE_API_KEY": "R6a5suLzZ4LwnA6USCG6qJ",
     "VITE_FRONTEND_FORGE_API_URL": "https://forge.manus.ai",
-    "VITE_OAUTH_PORTAL_URL": "https://manus.im"
+    "VITE_OAUTH_PORTAL_URL": "https://manus.im",
+    "VITE_STRIPE_PUBLISHABLE_KEY": "pk_test_51Tw6mQBfFYiLlLtNJzFcqprfRI9C13nlpFrk9Wa0c7mz8yJXjKvBy3padmuLQ0P8bLrNgI09iCOrvLXhfProUqK900I8szmdSY"
   },
   "template_id": "web-db-user",
   "test_command": "pnpm test"

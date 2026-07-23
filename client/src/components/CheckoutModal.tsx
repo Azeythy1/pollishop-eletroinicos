@@ -1,9 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { MessageCircle, ChevronDown } from "lucide-react";
+import { MessageCircle, ChevronDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import React, { useState } from "react";
+import { trpc } from "@/lib/trpc";
 
 export type PaymentMethod = "pix" | "installment";
 
@@ -44,6 +45,23 @@ export function CheckoutModal({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [selectedInstallment, setSelectedInstallment] = useState<InstallmentOption | null>(null);
   const [expandedInstallments, setExpandedInstallments] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Stripe checkout mutation
+  const createCheckoutSession = trpc.checkout.createSession.useMutation({
+    onSuccess: (data) => {
+      if (data.url) {
+        window.open(data.url, "_blank");
+        toast.success("Redirecionando para pagamento...");
+        onClose();
+      }
+      setIsProcessing(false);
+    },
+    onError: (error) => {
+      toast.error("Erro ao processar pagamento: " + error.message);
+      setIsProcessing(false);
+    },
+  });
 
   // Collect all unique installment options from all items
   const allInstallmentOptions = React.useMemo(() => {
@@ -71,12 +89,29 @@ export function CheckoutModal({
     return parseFloat(baseTotal.toFixed(2));
   }, [selectedInstallment, total]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (paymentMethod === "installment" && !selectedInstallment) {
       toast.error("Selecione uma opção de parcelamento");
       return;
     }
-    onConfirm(paymentMethod, selectedInstallment || undefined);
+
+    setIsProcessing(true);
+
+    // Prepare checkout data
+    const checkoutData = {
+      items: items.map(item => ({
+        id: item.id,
+        model: item.model,
+        quantity: item.quantity,
+        price: item.cashPrice,
+      })),
+      total: paymentMethod === "pix" ? total * 0.9 : total,
+      paymentMethod,
+      installments: selectedInstallment?.installments,
+    };
+
+    // Send to Stripe
+    await createCheckoutSession.mutateAsync(checkoutData);
   };
 
   return (
@@ -231,15 +266,25 @@ export function CheckoutModal({
 
           {/* Action Buttons */}
           <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={onClose}>
+            <Button variant="outline" className="flex-1" onClick={onClose} disabled={isProcessing}>
               Cancelar
             </Button>
             <Button
               className="flex-1 bg-primary hover:bg-primary/90 gap-2"
               onClick={handleConfirm}
+              disabled={isProcessing}
             >
-              <MessageCircle className="w-4 h-4" />
-              Ir para WhatsApp
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <MessageCircle className="w-4 h-4" />
+                  Pagar com Stripe
+                </>
+              )}
             </Button>
           </div>
         </div>
