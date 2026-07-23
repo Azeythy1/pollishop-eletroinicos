@@ -24,6 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useState, useMemo, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import { ProductModal } from "@/components/ProductModal";
+import { GalleryCarousel } from "@/components/GalleryCarousel";
 import {
   CATEGORIES,
   SUBCATEGORIES,
@@ -300,10 +301,10 @@ export default function Home() {
   );
 
   const { data: items, isLoading } = trpc.catalog.list.useQuery();
-  const [filterName, setFilterName] = useState<string>("all");
-  const [filterSize, setFilterSize] = useState<string>("all");
+  const [filterName, setFilterName] = useState<string>("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [filterSubcategory, setFilterSubcategory] = useState<string>("all");
+  const [priceMin, setPriceMin] = useState<number>(0);
+  const [priceMax, setPriceMax] = useState<number>(10000);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -337,15 +338,15 @@ export default function Home() {
     if (!items) return [];
     return items.filter(
       i =>
-        (filterName === "all" || i.model === filterName) &&
-        (filterCategory === "all" || i.category === filterCategory)
+        (filterName === "" || i.model.toLowerCase().includes(filterName.toLowerCase())) &&
+        (filterCategory === "all" || i.category === filterCategory) &&
+        (i.cashPrice >= priceMin && i.cashPrice <= priceMax)
     );
-  }, [items, filterName, filterCategory]);
+  }, [items, filterName, filterCategory, priceMin, priceMax]);
 
   const handleCategorySelect = (label: string) => {
     const next = filterCategory === label ? "all" : label;
     setFilterCategory(next);
-    setFilterSubcategory("all");
   };
 
   const handleAddToCart = (item: CatalogItem) => {
@@ -428,95 +429,86 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="relative overflow-hidden bg-gradient-to-b from-rose-50/80 to-background border-b border-border">
-        <div className="container relative py-14 md:py-20">
-          <div className="flex flex-col items-center justify-center text-center space-y-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="space-y-4 max-w-2xl"
-            >
-              <p className="text-sm font-medium text-primary tracking-widest uppercase">Nova coleção</p>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground">
-                Moda íntima & fitness com estilo
-              </h1>
-              <p className="text-lg md:text-xl text-muted-foreground">
-                Lingerie, cuecas e peças fitness selecionadas para você se sentir bem e confiante.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="flex flex-wrap justify-center gap-6 pt-2"
-            >
-              {[
-                { icon: Sparkles, label: "Qualidade premium" },
-                { icon: Ruler, label: "Variedade de tamanhos" },
-                { icon: MessageCircle, label: "Compra pelo WhatsApp" },
-              ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Icon className="w-4 h-4 text-primary" />
-                  {label}
-                </div>
-              ))}
-            </motion.div>
-          </div>
-        </div>
-      </section>
+      <GalleryCarousel />
 
       <section className="border-b border-border bg-card/50">
-        <div className="container">
-          <div className="flex items-center gap-2 py-4">
-            <button
-              onClick={() => scroll("left")}
-              disabled={!canScrollLeft}
-              className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-
-            <div
-              ref={carouselRef}
-              className="flex gap-2 overflow-x-auto scrollbar-hide flex-1"
-              onScroll={checkScroll}
-              onTouchEnd={checkScroll}
-            >
-              {CATEGORIES.map(label => {
-                const Icon = CATEGORY_ICONS[label];
-                return (
-                  <button
-                    key={label}
-                    onClick={() => handleCategorySelect(label)}
-                    className={`flex flex-col items-center gap-2 px-5 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-medium flex-shrink-0 ${
-                      filterCategory === label
-                        ? "bg-primary text-primary-foreground shadow-md scale-105"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    {label}
-                  </button>
-                );
-              })}
+        <div className="container py-6">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Filtrar Produtos</h2>
+          <div className="flex flex-col gap-4">
+            {/* Filtro por Categoria */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">Categoria</label>
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-full md:w-64 bg-card border-border">
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as categorias</SelectItem>
+                  {CATEGORIES.map(cat => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <button
-              onClick={() => scroll("right")}
-              disabled={!canScrollRight}
-              className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Scroll right"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+            {/* Filtro por Faixa de Preço */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">Faixa de Preço</label>
+              <div className="flex gap-4 items-end">
+                <div className="flex-1">
+                  <label className="text-xs text-muted-foreground mb-1 block">Mínimo</label>
+                  <input
+                    type="number"
+                    value={priceMin}
+                    onChange={(e) => setPriceMin(Number(e.target.value))}
+                    placeholder="0"
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-muted-foreground mb-1 block">Máximo</label>
+                  <input
+                    type="number"
+                    value={priceMax}
+                    onChange={(e) => setPriceMax(Number(e.target.value))}
+                    placeholder="10000"
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Filtro por Nome/Modelo */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">Buscar por Nome</label>
+              <input
+                type="text"
+                value={filterName}
+                onChange={(e) => setFilterName(e.target.value)}
+                placeholder="Digite o nome ou modelo do produto"
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+              />
+            </div>
+
+            {/* Botão Limpar Filtros */}
+            {(filterCategory !== "all" || filterName !== "" || priceMin > 0 || priceMax < 10000) && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setFilterCategory("all");
+                  setFilterName("");
+                  setPriceMin(0);
+                  setPriceMax(10000);
+                }}
+              >
+                Limpar Filtros
+              </Button>
+            )}
           </div>
-
-
         </div>
       </section>
+
+
 
       <section className="pb-20">
         <div className="container">
