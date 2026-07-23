@@ -73,17 +73,13 @@ function ConditionBadge({ condition }: { condition: string }) {
 
 type CatalogItem = {
   id: number;
-  category?: string;
+  category: string;
   model: string;
-  storage: string | null;
-  color?: string | null;
-  itemSubcategory?: string | null;
-  brand?: string | null;
-  specifications?: string | null;
-  condition: string;
+  description: string;
   cashPrice: number;
   installmentOptions: Array<{ installments: number; rate: number; total: number; perInstallment: number }>;
   photos: Array<{ id: number; url: string; isPrimary: boolean }>;
+  createdAt: Date;
 };
 
 type CartItem = CatalogItem & { quantity: number };
@@ -117,26 +113,19 @@ function ProductCard({ item, onAddToCart }: { item: CatalogItem; onAddToCart: (i
               <Shirt className="w-10 h-10 text-muted-foreground/30" />
             </div>
           )}
-          {item.itemSubcategory && (
-            <span className="absolute top-2 left-2 bg-background/90 text-foreground text-[10px] font-medium px-2 py-0.5 rounded-full border border-border">
-              {item.itemSubcategory}
-            </span>
-          )}
+
         </div>
 
         <div className="p-3 space-y-2">
           <div>
             <h3 className="font-semibold text-foreground text-sm line-clamp-1">{item.model}</h3>
             <p className="text-xs text-muted-foreground line-clamp-1">
-              {[item.storage, item.color].filter(Boolean).join(" · ") || item.category}
+              {item.category}
             </p>
           </div>
 
           <div className="flex items-center gap-1 flex-wrap">
-            <ConditionBadge condition={item.condition} />
-            {item.brand && (
-              <span className="text-[10px] text-muted-foreground">{item.brand}</span>
-            )}
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{item.category}</span>
           </div>
 
           <div>
@@ -253,9 +242,7 @@ function CartDrawer({
                 <div key={item.id} className="flex gap-3 p-3 rounded-lg bg-muted/50 border border-border">
                   <div className="flex-1">
                     <p className="font-medium text-sm text-foreground">{item.model}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {[item.itemSubcategory, item.storage].filter(Boolean).join(" · ")} · Qtd: {item.quantity}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Qtd: {item.quantity}</p>
                     <p className="font-bold text-primary text-sm mt-1">
                       {formatCurrency(item.cashPrice * item.quantity)}
                     </p>
@@ -346,26 +333,14 @@ export default function Home() {
     return Array.from(new Set(items.map(i => i.model).filter(Boolean))).sort() as string[];
   }, [items]);
 
-  const sizes = useMemo(() => {
-    if (!items) return [];
-    return Array.from(new Set(items.map(i => i.storage).filter(Boolean))).sort() as string[];
-  }, [items]);
-
-  const activeSubcategories = useMemo(() => {
-    if (filterCategory === "all" || !CATEGORIES.includes(filterCategory as Category)) return [];
-    return SUBCATEGORIES[filterCategory as Category];
-  }, [filterCategory]);
-
   const filtered = useMemo(() => {
     if (!items) return [];
     return items.filter(
       i =>
         (filterName === "all" || i.model === filterName) &&
-        (filterSize === "all" || i.storage === filterSize) &&
-        (filterCategory === "all" || i.category === filterCategory) &&
-        (filterSubcategory === "all" || i.itemSubcategory === filterSubcategory)
+        (filterCategory === "all" || i.category === filterCategory)
     );
-  }, [items, filterName, filterSize, filterCategory, filterSubcategory]);
+  }, [items, filterName, filterCategory]);
 
   const handleCategorySelect = (label: string) => {
     const next = filterCategory === label ? "all" : label;
@@ -393,7 +368,7 @@ export default function Home() {
     const itemsList = cartItems
       .map(
         item =>
-          `${item.model} ${item.itemSubcategory ?? ""} ${item.storage ?? ""} (Qtd: ${item.quantity}) - ${formatCurrency(item.cashPrice * item.quantity)}`
+          `${item.model} (Qtd: ${item.quantity}) - ${formatCurrency(item.cashPrice * item.quantity)}`
       )
       .join("%0A");
     const message = `Olá! Gostaria de fazer uma compra:%0A%0A${itemsList}%0A%0ATotal: ${formatCurrency(total)}`;
@@ -539,33 +514,7 @@ export default function Home() {
             </button>
           </div>
 
-          {activeSubcategories.length > 0 && (
-            <div className="flex flex-wrap gap-2 pb-4">
-              <button
-                onClick={() => setFilterSubcategory("all")}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                  filterSubcategory === "all"
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-background text-muted-foreground border-border hover:border-primary/50"
-                }`}
-              >
-                Todos
-              </button>
-              {activeSubcategories.map(sub => (
-                <button
-                  key={sub}
-                  onClick={() => setFilterSubcategory(sub)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                    filterSubcategory === sub
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background text-muted-foreground border-border hover:border-primary/50"
-                  }`}
-                >
-                  {sub}
-                </button>
-              ))}
-            </div>
-          )}
+
         </div>
       </section>
 
@@ -584,25 +533,12 @@ export default function Home() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={filterSize} onValueChange={setFilterSize}>
-                <SelectTrigger className="w-36 bg-card border-border">
-                  <SelectValue placeholder="Tamanho" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os tamanhos</SelectItem>
-                  {sizes.map(s => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {(filterName !== "all" || filterSize !== "all" || filterSubcategory !== "all") && (
+              {filterName !== "all" && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
                     setFilterName("all");
-                    setFilterSize("all");
-                    setFilterSubcategory("all");
                   }}
                 >
                   Limpar filtros

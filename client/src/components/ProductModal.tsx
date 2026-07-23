@@ -13,15 +13,10 @@ interface Photo {
 
 interface CatalogItem {
   id: number;
+  category: string;
   model: string;
-  storage: string | null;
-  color?: string | null;
+  description: string;
   cashPrice: number;
-  condition: string;
-  category?: string;
-  itemSubcategory?: string | null;
-  brand?: string | null;
-  specifications?: string | null;
   photos: Photo[];
   installmentOptions: Array<{
     installments: number;
@@ -29,6 +24,7 @@ interface CatalogItem {
     perInstallment: number;
     total: number;
   }>;
+  createdAt: Date;
 }
 
 interface ProductModalProps {
@@ -47,8 +43,7 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
   const photos = product.photos.length > 0 ? product.photos : [];
   const currentPhoto = photos[currentPhotoIndex];
   const installment12x = product.installmentOptions.find(opt => opt.installments === 12);
-  const conditionLabel =
-    CONDITION_LABELS[product.condition as keyof typeof CONDITION_LABELS] ?? product.condition;
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -56,7 +51,6 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
         <DialogHeader>
           <DialogTitle className="text-foreground">
             {product.model}
-            {product.itemSubcategory ? ` — ${product.itemSubcategory}` : ""}
           </DialogTitle>
         </DialogHeader>
 
@@ -141,50 +135,17 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
                     <p className="text-sm text-muted-foreground">Categoria</p>
                     <p className="font-semibold text-foreground">
                       {product.category}
-                      {product.itemSubcategory ? ` · ${product.itemSubcategory}` : ""}
                     </p>
                   </div>
                 </div>
               )}
 
-              {product.storage && (
-                <div className="flex items-center gap-2">
-                  <Ruler className="w-4 h-4 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Tamanho</p>
-                    <p className="font-semibold text-foreground">{product.storage}</p>
-                  </div>
-                </div>
-              )}
 
-              {product.color && (
-                <div className="flex items-center gap-2">
-                  <Palette className="w-4 h-4 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Cor</p>
-                    <p className="font-semibold text-foreground">{product.color}</p>
-                  </div>
-                </div>
-              )}
 
               <div>
-                <p className="text-sm text-muted-foreground">Condição</p>
-                <p className="font-semibold text-foreground capitalize">{conditionLabel}</p>
+                <p className="text-sm text-muted-foreground">Descrição</p>
+                <p className="font-semibold text-foreground">{product.description}</p>
               </div>
-
-              {product.brand && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Marca</p>
-                  <p className="font-semibold text-foreground">{product.brand}</p>
-                </div>
-              )}
-
-              {product.specifications && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Material / Detalhes</p>
-                  <p className="font-semibold text-foreground">{product.specifications}</p>
-                </div>
-              )}
             </div>
 
             <div className="flex gap-3 pt-4 border-t border-border">

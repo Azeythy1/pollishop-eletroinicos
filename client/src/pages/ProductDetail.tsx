@@ -1,11 +1,13 @@
-import { useState } from "react";
+"use client";
+
 import { useRoute, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shirt, ChevronLeft, ChevronRight, Heart, Dumbbell, Ruler, Palette, Tag } from "lucide-react";
-import { CONDITION_LABELS, type Category } from "@shared/categories";
+import { ChevronLeft, ChevronRight, Heart, MessageCircle, Share2, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -13,10 +15,12 @@ function formatCurrency(value: number) {
 
 function getCategoryIcon(category: string) {
   switch (category) {
-    case "Lingerie": return <Heart className="w-3 h-3 text-primary-foreground" />;
-    case "Cueca": return <Shirt className="w-3 h-3 text-primary-foreground" />;
-    case "Fitness": return <Dumbbell className="w-3 h-3 text-primary-foreground" />;
-    default: return <Shirt className="w-3 h-3 text-primary-foreground" />;
+    case "Eletrônicos": return "📱";
+    case "Vestiário": return "👕";
+    case "Fitness": return "💪";
+    case "Moda Íntima": return "💝";
+    case "Variados": return "📦";
+    default: return "📦";
   }
 }
 
@@ -24,13 +28,14 @@ export default function ProductDetail() {
   const [, params] = useRoute("/produto/:id");
   const id = parseInt(params?.id ?? "0");
   const [photoIdx, setPhotoIdx] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const { data: item, isLoading } = trpc.catalog.getById.useQuery({ id }, { enabled: !!id });
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -38,7 +43,7 @@ export default function ProductDetail() {
   if (!item) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <Shirt className="w-16 h-16 text-muted-foreground/30" />
+        <div className="text-6xl">📦</div>
         <h2 className="text-xl font-semibold">Produto não encontrado</h2>
         <Link href="/"><Button variant="outline">Voltar ao catálogo</Button></Link>
       </div>
@@ -47,164 +52,183 @@ export default function ProductDetail() {
 
   const photos = item.photos;
   const currentPhoto = photos[photoIdx];
-  const conditionLabel =
-    CONDITION_LABELS[item.condition as keyof typeof CONDITION_LABELS] ?? item.condition;
+
+  const handleShare = () => {
+    const text = `Confira este produto: ${item.model} - ${formatCurrency(item.cashPrice)}`;
+    const url = window.location.href;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + " " + url)}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const handleAddToCart = () => {
+    toast.success(`${item.model} adicionado ao carrinho!`);
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="container">
-          <div className="flex items-center h-16 gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <ChevronLeft className="w-4 h-4" /> Voltar
-              </Button>
-            </Link>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-                {getCategoryIcon(item.category as string)}
-              </div>
-              <span className="font-semibold text-sm text-foreground">
-                {item.model} {item.storage ? `· ${item.storage}` : ""}
-              </span>
-            </div>
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <Link href="/">
+            <Button variant="ghost" size="icon">
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+          </Link>
+          <h1 className="text-lg font-semibold text-foreground">{item.model}</h1>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsFavorite(!isFavorite)}
+              className={isFavorite ? "text-destructive" : ""}
+            >
+              <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleShare}>
+              <Share2 className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </header>
 
-      <div className="container py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-            <div className="rounded-2xl overflow-hidden border border-border bg-card aspect-[3/4] relative">
+      {/* Content */}
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Fotos */}
+          <div className="space-y-4">
+            {/* Foto Principal */}
+            <motion.div
+              key={photoIdx}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="relative w-full aspect-square bg-muted rounded-xl overflow-hidden"
+            >
               {currentPhoto ? (
-                <img src={currentPhoto.url} alt={item.model} className="w-full h-full object-cover" />
+                <img
+                  src={currentPhoto.url}
+                  alt={`${item.model} - foto ${photoIdx + 1}`}
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Shirt className="w-24 h-24 text-muted-foreground/20" />
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-6xl">{getCategoryIcon(item.category)}</div>
                 </div>
               )}
+
+              {/* Navegação */}
               {photos.length > 1 && (
                 <>
                   <button
-                    onClick={() => setPhotoIdx(i => (i - 1 + photos.length) % photos.length)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/80 border border-border flex items-center justify-center hover:bg-background transition-colors"
+                    onClick={() => setPhotoIdx((prev) => (prev - 1 + photos.length) % photos.length)}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => setPhotoIdx(i => (i + 1) % photos.length)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/80 border border-border flex items-center justify-center hover:bg-background transition-colors"
+                    onClick={() => setPhotoIdx((prev) => (prev + 1) % photos.length)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-5 h-5" />
                   </button>
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                    {photoIdx + 1} / {photos.length}
+                  </div>
                 </>
               )}
-            </div>
+            </motion.div>
+
+            {/* Miniaturas */}
             {photos.length > 1 && (
-              <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
-                {photos.map((p, i) => (
+              <div className="grid grid-cols-5 gap-2">
+                {photos.map((photo, idx) => (
                   <button
-                    key={p.id}
-                    onClick={() => setPhotoIdx(i)}
-                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all ${i === photoIdx ? "border-primary" : "border-border opacity-60 hover:opacity-100"}`}
+                    key={idx}
+                    onClick={() => setPhotoIdx(idx)}
+                    className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                      idx === photoIdx ? "border-primary" : "border-border hover:border-primary/50"
+                    }`}
                   >
-                    <img src={p.url} alt="" className="w-full h-full object-cover" />
+                    <img src={photo.url} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
             )}
-          </motion.div>
+          </div>
 
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col gap-6">
+          {/* Informações */}
+          <div className="space-y-6">
+            {/* Categoria e Status */}
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-sm">
+                {getCategoryIcon(item.category)} {item.category}
+              </Badge>
+              <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-600/30">
+                Disponível
+              </Badge>
+            </div>
+
+            {/* Título */}
             <div>
-              <h1 className="text-3xl font-bold text-foreground">{item.model}</h1>
-              <div className="flex flex-wrap items-center gap-3 mt-3">
-                {item.itemSubcategory && <Badge variant="secondary" className="text-sm">{item.itemSubcategory}</Badge>}
-                {item.storage && <Badge variant="secondary" className="text-sm">{item.storage}</Badge>}
-                {item.brand && <Badge variant="outline" className="text-sm">{item.brand}</Badge>}
-                {item.color && <span className="text-sm text-muted-foreground">{item.color}</span>}
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border bg-rose-100 text-rose-700 border-rose-300">
-                  {conditionLabel}
-                </span>
-              </div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">{item.model}</h1>
+              <p className="text-sm text-muted-foreground">{item.description}</p>
             </div>
 
-            <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Detalhes</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {item.category && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Tag className="w-4 h-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Categoria</p>
-                      <p className="font-semibold text-foreground">{item.category as Category}</p>
-                    </div>
-                  </div>
-                )}
-                {item.storage && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Ruler className="w-4 h-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Tamanho</p>
-                      <p className="font-semibold text-foreground">{item.storage}</p>
-                    </div>
-                  </div>
-                )}
-                {item.color && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Palette className="w-4 h-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Cor</p>
-                      <p className="font-semibold text-foreground">{item.color}</p>
-                    </div>
-                  </div>
-                )}
+            {/* Preços */}
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-6 space-y-4">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Preço à Vista</p>
+                <p className="text-4xl font-bold text-primary">{formatCurrency(item.cashPrice)}</p>
               </div>
 
-              {item.specifications && (
-                <div className="pt-4 border-t border-border">
-                  <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Material / Detalhes</p>
-                  <p className="text-sm text-foreground whitespace-pre-wrap">{item.specifications}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-xl border border-primary/30 bg-primary/5 p-5">
-              <div className="flex items-end justify-between mb-4">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Preço à vista</p>
-                  <p className="text-4xl font-bold text-primary">{formatCurrency(item.cashPrice)}</p>
-                </div>
-              </div>
-
-              {item.installmentOptions.length > 0 && (
-                <div className="border-t border-border pt-4">
-                  <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">Opções de parcelamento</p>
+              {/* Parcelamento */}
+              {item.installmentOptions && item.installmentOptions.length > 0 && (
+                <div className="pt-4 border-t border-primary/20">
+                  <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Parcelamento</p>
                   <div className="space-y-2">
-                    {item.installmentOptions
-                      .sort((a, b) => a.installments - b.installments)
-                      .map(opt => (
-                        <div key={opt.installments} className="flex items-center justify-between py-2 px-3 rounded-lg bg-card border border-border">
-                          <span className="text-sm font-medium text-foreground">{opt.installments}x de</span>
-                          <div className="text-right">
-                            <span className="text-sm font-bold text-foreground">{formatCurrency(opt.perInstallment)}</span>
-                            <span className="text-xs text-muted-foreground ml-2">({formatCurrency(opt.total)} total)</span>
-                          </div>
-                        </div>
-                      ))}
+                    {item.installmentOptions.map((opt, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-sm">
+                        <span className="text-foreground">{opt.installments}x</span>
+                        <span className="font-medium text-primary">{formatCurrency(opt.perInstallment)}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
-          </motion.div>
+
+            {/* Botões de Ação */}
+            <div className="space-y-3">
+              <Button
+                size="lg"
+                className="w-full"
+                onClick={handleAddToCart}
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Comprar via WhatsApp
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full"
+                onClick={handleShare}
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Compartilhar
+              </Button>
+            </div>
+
+            {/* Informações Adicionais */}
+            <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+              <h3 className="font-semibold text-foreground">Sobre este produto</h3>
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p><strong>ID:</strong> {item.id}</p>
+                <p><strong>Categoria:</strong> {item.category}</p>
+                <p><strong>Data de Cadastro:</strong> {new Date(item.createdAt).toLocaleDateString("pt-BR")}</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
