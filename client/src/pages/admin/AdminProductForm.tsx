@@ -1,4 +1,3 @@
-"use client";
 
 import { useRoute, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
@@ -45,7 +44,7 @@ export default function AdminProductForm() {
     { enabled: !!productId }
   );
 
-  const uploadMutation = trpc.upload.photo.useMutation();
+  const uploadMutation = trpc.admin.uploadPhoto.useMutation();
 
   const [photos, setPhotos] = useState<Array<{ id?: number; url: string; isPrimary: boolean; file?: File; uploading?: boolean }>>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
@@ -78,7 +77,33 @@ export default function AdminProductForm() {
   }, [existingProduct, form]);
 
   const createMutation = trpc.admin.createIphone.useMutation({
-    onSuccess: () => {
+    onSuccess: async (createdProduct: any) => {
+      // Fazer upload das fotos para o produto criado
+      for (let i = 0; i < photos.length; i++) {
+        const photo = photos[i];
+        if (!photo.id && photo.file) { // Apenas fotos novas (sem ID)
+          try {
+            const fileData = await photo.file.arrayBuffer();
+            const bytes = new Uint8Array(fileData);
+            let base64 = '';
+            for (let j = 0; j < bytes.length; j++) {
+              base64 += String.fromCharCode(bytes[j]);
+            }
+            const base64String = btoa(base64);
+            
+            await uploadMutation.mutateAsync({
+              iphoneId: createdProduct.id,
+              filename: photo.file.name,
+              mimeType: photo.file.type,
+              base64: base64String,
+              isPrimary: i === 0,
+            });
+          } catch (error) {
+            console.error('Erro ao fazer upload da foto:', error);
+            toast.error("Erro ao fazer upload de uma das fotos");
+          }
+        }
+      }
       toast.success("Produto criado com sucesso!");
       navigate("/admin/produtos");
     },
@@ -86,7 +111,33 @@ export default function AdminProductForm() {
   });
 
   const updateMutation = trpc.admin.updateIphone.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Fazer upload das fotos novas para o produto existente
+      for (let i = 0; i < photos.length; i++) {
+        const photo = photos[i];
+        if (!photo.id && photo.file) { // Apenas fotos novas (sem ID)
+          try {
+            const fileData = await photo.file.arrayBuffer();
+            const bytes = new Uint8Array(fileData);
+            let base64 = '';
+            for (let j = 0; j < bytes.length; j++) {
+              base64 += String.fromCharCode(bytes[j]);
+            }
+            const base64String = btoa(base64);
+            
+            await uploadMutation.mutateAsync({
+              iphoneId: productId!,
+              filename: photo.file.name,
+              mimeType: photo.file.type,
+              base64: base64String,
+              isPrimary: i === 0,
+            });
+          } catch (error) {
+            console.error('Erro ao fazer upload da foto:', error);
+            toast.error("Erro ao fazer upload de uma das fotos");
+          }
+        }
+      }
       toast.success("Produto atualizado com sucesso!");
       navigate("/admin/produtos");
     },
@@ -108,13 +159,13 @@ export default function AdminProductForm() {
     };
 
     if (isEditing && productId) {
-      updateMutation.mutate({ id: productId, ...submitData });
+      updateMutation.mutate({ id: productId, data: submitData });
     } else {
       createMutation.mutate(submitData);
     }
   };
 
-  const isLoading = loadingProduct || createMutation.isPending || updateMutation.isPending;
+  const isLoading = loadingProduct || createMutation.isPending || updateMutation.isPending || uploadMutation.isPending;
   const cashPrice = form.watch("costPrice") * (1 + (form.watch("priceAdjustType") === "percentage" ? form.watch("priceAdjustValue") / 100 : form.watch("priceAdjustValue") / form.watch("costPrice")));
 
   return (
@@ -208,81 +259,33 @@ export default function AdminProductForm() {
                       return;
                     }
 
-                    setUploadingPhotos(true);
-                    try {
-                      for (const file of files) {
-                        const fileData = await file.arrayBuffer();
-                        const bytes = new Uint8Array(fileData);
-                        let base64 = '';
-                        for (let i = 0; i < bytes.length; i++) {
-                          base64 += String.fromCharCode(bytes[i]);
-                        }
-                        const base64String = btoa(base64);
-                        
-                        const response = await fetch("/api/upload", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            file: { name: file.name, type: file.type },
-                            fileData: base64String,
-                          }),
-                        });
-                        
-                        if (!response.ok) throw new Error("Upload falhou");
-                        const result = await response.json();
-                        
-                        setPhotos(prev => [...prev, {
-                          url: result.url,
-                          isPrimary: prev.length === 0,
-                          file,
-                        }]);
-                      }
-                      toast.success("Fotos adicionadas com sucesso");
-                    } catch (error) {
-                      console.error('Upload error:', error);
-                      toast.error("Erro ao fazer upload das fotos");
-                    } finally {
-                      setUploadingPhotos(false);
+                    for (const file of files) {
+                      setPhotos(prev => [...prev, {
+                        url: URL.createObjectURL(file),
+                        isPrimary: prev.length === 0,
+                        file,
+                      }]);
                     }
+                    toast.success("Fotos adicionadas com sucesso");
                   }}
                 />
               </div>
 
-              {/* Fotos existentes */}
+              {/* Galeria de fotos */}
               {photos.length > 0 && (
-                <div className="grid grid-cols-5 gap-3">
-                  {photos.map((photo, index) => (
-                    <div key={index} className="relative group">
-                      <img src={photo.url} alt={`Foto ${index + 1}`} className="w-full h-24 object-cover rounded-lg" />
-                      
-                      {/* Badge primária */}
-                      {photo.isPrimary && (
-                        <div className="absolute top-1 left-1 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-semibold flex items-center gap-1">
-                          <Star className="w-3 h-3" />
-                          Principal
-                        </div>
-                      )}
-                      
-                      {/* Botões de ação */}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
-                        {!photo.isPrimary && (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => setPhotos(photos.map((p, i) => ({ ...p, isPrimary: i === index })))}
-                          >
-                            <Star className="w-3 h-3" />
-                          </Button>
-                        )}
-                        <Button
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {photos.map((photo, idx) => (
+                    <div key={idx} className="relative group">
+                      <img src={photo.url} alt={`Foto ${idx + 1}`} className="w-full h-32 object-cover rounded-lg" />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                        {photo.isPrimary && <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />}
+                        <button
                           type="button"
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => setPhotos(photos.filter((_, i) => i !== index))}
+                          onClick={() => setPhotos(prev => prev.filter((_, i) => i !== idx))}
+                          className="p-1 bg-destructive rounded hover:bg-destructive/90"
                         >
-                          <X className="w-3 h-3" />
-                        </Button>
+                          <X className="w-4 h-4 text-white" />
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -290,85 +293,52 @@ export default function AdminProductForm() {
               )}
             </div>
 
-            {/* Preço de Custo */}
-            <div className="space-y-2">
-              <Label htmlFor="costPrice">Preço de Custo (R$)</Label>
-              <Input
-                id="costPrice"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                {...form.register("costPrice", { valueAsNumber: true })}
-              />
-              {form.formState.errors.costPrice && typeof form.formState.errors.costPrice === 'object' && 'message' in form.formState.errors.costPrice && (
-                <p className="text-sm text-destructive">{(form.formState.errors.costPrice as any).message}</p>
-              )}
-            </div>
-
-            {/* Ajuste de Preço */}
+            {/* Preço */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="priceAdjustType">Tipo de Ajuste</Label>
-                <Select value={form.watch("priceAdjustType")} onValueChange={(value) => form.setValue("priceAdjustType", value as any)}>
-                  <SelectTrigger className="bg-card border-border">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="percentage">Percentual (%)</SelectItem>
-                    <SelectItem value="fixed">Fixo (R$)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="priceAdjustValue">Valor do Ajuste</Label>
+                <Label htmlFor="costPrice">Preço de Custo (R$)</Label>
                 <Input
-                  id="priceAdjustValue"
+                  id="costPrice"
                   type="number"
                   step="0.01"
                   placeholder="0.00"
-                  {...form.register("priceAdjustValue", { valueAsNumber: true })}
+                  {...form.register("costPrice", { valueAsNumber: true })}
                 />
+                {form.formState.errors.costPrice && typeof form.formState.errors.costPrice === 'object' && 'message' in form.formState.errors.costPrice && (
+                  <p className="text-sm text-destructive">{(form.formState.errors.costPrice as any).message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Preço à Vista: {formatCurrency(cashPrice)}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Valor"
+                    {...form.register("priceAdjustValue", { valueAsNumber: true })}
+                  />
+                  <Select value={form.watch("priceAdjustType")} onValueChange={(value) => form.setValue("priceAdjustType", value as any)}>
+                    <SelectTrigger className="w-24 bg-card border-border">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percentage">%</SelectItem>
+                      <SelectItem value="fixed">R$</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
-            {/* Preço Final */}
-            <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
-              <p className="text-sm text-muted-foreground">Preço à Vista (Calculado)</p>
-              <p className="text-2xl font-bold text-primary">{formatCurrency(cashPrice)}</p>
-            </div>
-
-            {/* Status */}
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={form.watch("status")} onValueChange={(value) => form.setValue("status", value as any)}>
-                <SelectTrigger className="bg-card border-border">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="published">Publicado</SelectItem>
-                  <SelectItem value="draft">Rascunho</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Botões de Ação */}
-            <div className="flex gap-3 pt-8">
+            {/* Botões */}
+            <div className="flex gap-4">
               <Link href="/admin/produtos">
                 <Button type="button" variant="outline">Cancelar</Button>
               </Link>
-              <Button 
-                type="submit" 
-                disabled={isLoading || uploadingPhotos}
-                className="flex-1"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {isEditing ? "Atualizando..." : "Criando..."}
-                  </>
-                ) : (
-                  isEditing ? "Atualizar Produto" : "Criar Produto"
-                )}
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {isEditing ? "Atualizar Produto" : "Criar Produto"}
               </Button>
             </div>
           </form>
