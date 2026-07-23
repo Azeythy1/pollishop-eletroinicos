@@ -4,123 +4,74 @@ import { CATEGORIES, SUBCATEGORIES } from "@shared/categories";
 
 const baseSchema = z.object({
   category: z.enum(CATEGORIES),
-  color: z.string().optional(),
-  condition: z.enum(["excelente", "bom", "regular"]),
+  model: z.string().min(1, "Nome do produto obrigatório"),
+  description: z.string().min(1, "Descrição obrigatória"),
   costPrice: z.number().positive("Preço de custo obrigatório"),
   priceAdjustType: z.enum(["percentage", "fixed"]),
   priceAdjustValue: z.number().min(0),
   status: z.enum(["draft", "published"]),
-  notes: z.string().optional(),
 });
-
-const clothingSchema = baseSchema.extend({
-  model: z.string().min(1, "Nome do produto obrigatório"),
-  itemSubcategory: z.string().min(1, "Selecione a subcategoria"),
-  storage: z.string().min(1, "Selecione o tamanho"),
-  brand: z.string().optional().nullable(),
-  specifications: z.string().optional().nullable(),
-});
-
-function getSchemaForCategory(_category: string) {
-  return clothingSchema;
-}
 
 describe("Dynamic Product Fields by Category", () => {
-  describe("Lingerie", () => {
-    it("should validate lingerie with all required fields", async () => {
-      const schema = getSchemaForCategory("Lingerie");
+  describe("Eletrônicos", () => {
+    it("should validate electronics product", async () => {
       const data = {
-        category: "Lingerie",
-        model: "Conjunto renda preta",
-        itemSubcategory: "Conjunto",
-        storage: "M",
-        color: "Preto",
-        condition: "excelente",
-        costPrice: 89.9,
+        category: "Eletrônicos",
+        model: "iPhone 13",
+        description: "iPhone 13 em excelente estado",
+        costPrice: 1500,
+        priceAdjustType: "percentage",
+        priceAdjustValue: 20,
+        status: "published",
+      };
+      const result = await baseSchema.parseAsync(data);
+      expect(result.model).toBe("iPhone 13");
+      expect(result.category).toBe("Eletrônicos");
+    });
+
+    it("should reject electronics without description", async () => {
+      const data = {
+        category: "Eletrônicos",
+        model: "iPhone 13",
+        description: "",
+        costPrice: 1500,
+        priceAdjustType: "percentage",
+        priceAdjustValue: 20,
+        status: "published",
+      };
+      await expect(baseSchema.parseAsync(data)).rejects.toThrow();
+    });
+  });
+
+  describe("Vestiário", () => {
+    it("should validate clothing product", async () => {
+      const data = {
+        category: "Vestiário",
+        model: "Camiseta Premium",
+        description: "Camiseta de algodão 100%",
+        costPrice: 50,
         priceAdjustType: "percentage",
         priceAdjustValue: 30,
         status: "published",
       };
-      const result = await schema.parseAsync(data);
-      expect(result.model).toBe("Conjunto renda preta");
-      expect(result.itemSubcategory).toBe("Conjunto");
-    });
-
-    it("should reject lingerie without subcategory", async () => {
-      const schema = getSchemaForCategory("Lingerie");
-      const data = {
-        category: "Lingerie",
-        model: "Calcinha fio dental",
-        storage: "P",
-        condition: "excelente",
-        costPrice: 29.9,
-        priceAdjustType: "percentage",
-        priceAdjustValue: 0,
-        status: "published",
-      };
-      await expect(schema.parseAsync(data)).rejects.toThrow();
-    });
-
-    it("should accept valid lingerie subcategories", () => {
-      for (const sub of SUBCATEGORIES.Lingerie) {
-        expect(["Calcinhas", "Tangas", "Conjunto"]).toContain(sub);
-      }
-    });
-  });
-
-  describe("Cueca", () => {
-    it("should validate cueca product", async () => {
-      const schema = getSchemaForCategory("Cueca");
-      const data = {
-        category: "Cueca",
-        model: "Cueca Box Premium",
-        itemSubcategory: "Box",
-        storage: "G",
-        condition: "excelente",
-        costPrice: 35,
-        priceAdjustType: "fixed",
-        priceAdjustValue: 15,
-        status: "published",
-      };
-      const result = await schema.parseAsync(data);
-      expect(result.itemSubcategory).toBe("Box");
-    });
-
-    it("should reject cueca without size", async () => {
-      const schema = getSchemaForCategory("Cueca");
-      const data = {
-        category: "Cueca",
-        model: "Sunga listrada",
-        itemSubcategory: "Sunga",
-        condition: "bom",
-        costPrice: 25,
-        priceAdjustType: "percentage",
-        priceAdjustValue: 0,
-        status: "draft",
-      };
-      await expect(schema.parseAsync(data)).rejects.toThrow();
+      const result = await baseSchema.parseAsync(data);
+      expect(result.category).toBe("Vestiário");
     });
   });
 
   describe("Fitness", () => {
     it("should validate fitness product", async () => {
-      const schema = getSchemaForCategory("Fitness");
       const data = {
         category: "Fitness",
         model: "Macacão compressão",
-        itemSubcategory: "Macacão",
-        storage: "M",
-        brand: "PolliFit",
-        specifications: "Tecido dry-fit, alta compressão",
-        condition: "excelente",
+        description: "Macacão de compressão para treino",
         costPrice: 120,
         priceAdjustType: "percentage",
         priceAdjustValue: 40,
         status: "published",
       };
-      const result = await schema.parseAsync(data);
-      expect(result.itemSubcategory).toBe("Macacão");
-      expect(result.specifications).toContain("dry-fit");
+      const result = await baseSchema.parseAsync(data);
+      expect(result.category).toBe("Fitness");
     });
 
     it("should accept all fitness subcategories", () => {
@@ -135,37 +86,85 @@ describe("Dynamic Product Fields by Category", () => {
     });
   });
 
+  describe("Moda Intima", () => {
+    it("should validate intimate apparel product", async () => {
+      const data = {
+        category: "Moda Intima",
+        model: "Conjunto renda preta",
+        description: "Conjunto de lingerie com renda",
+        costPrice: 89.9,
+        priceAdjustType: "percentage",
+        priceAdjustValue: 30,
+        status: "published",
+      };
+      const result = await baseSchema.parseAsync(data);
+      expect(result.category).toBe("Moda Intima");
+    });
+
+    it("should accept all intimate apparel subcategories", () => {
+      expect(SUBCATEGORIES["Moda Intima"]).toEqual([
+        "Calcinhas",
+        "Tangas",
+        "Conjunto",
+      ]);
+    });
+  });
+
+  describe("Variados", () => {
+    it("should validate miscellaneous product", async () => {
+      const data = {
+        category: "Variados",
+        model: "Produto Diverso",
+        description: "Produto de categoria variada",
+        costPrice: 100,
+        priceAdjustType: "fixed",
+        priceAdjustValue: 20,
+        status: "published",
+      };
+      const result = await baseSchema.parseAsync(data);
+      expect(result.category).toBe("Variados");
+    });
+  });
+
   describe("Common validations", () => {
     it("should reject negative cost price", async () => {
-      const schema = getSchemaForCategory("Lingerie");
       const data = {
-        category: "Lingerie",
-        model: "Tanga renda",
-        itemSubcategory: "Tangas",
-        storage: "P",
-        condition: "excelente",
+        category: "Eletrônicos",
+        model: "iPhone 13",
+        description: "Produto teste",
         costPrice: -10,
         priceAdjustType: "percentage",
         priceAdjustValue: 0,
         status: "published",
       };
-      await expect(schema.parseAsync(data)).rejects.toThrow();
+      await expect(baseSchema.parseAsync(data)).rejects.toThrow();
     });
 
     it("should reject invalid category", async () => {
-      const schema = getSchemaForCategory("Lingerie");
       const data = {
-        category: "Smartphones",
+        category: "InvalidCategory" as any,
         model: "Test",
-        itemSubcategory: "Calcinhas",
-        storage: "M",
-        condition: "excelente",
+        description: "Test",
         costPrice: 50,
         priceAdjustType: "percentage",
         priceAdjustValue: 0,
         status: "published",
       };
-      await expect(schema.parseAsync(data)).rejects.toThrow();
+      await expect(baseSchema.parseAsync(data)).rejects.toThrow();
+    });
+
+    it("should set default status to published", async () => {
+      const dataWithoutStatus = {
+        category: "Eletrônicos",
+        model: "iPhone 13",
+        description: "Produto teste",
+        costPrice: 1500,
+        priceAdjustType: "percentage",
+        priceAdjustValue: 20,
+        status: "published" as const,
+      };
+      const result = await baseSchema.parseAsync(dataWithoutStatus);
+      expect(result.status).toBe("published");
     });
   });
 });

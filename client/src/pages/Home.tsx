@@ -39,9 +39,11 @@ function formatCurrency(value: number) {
 }
 
 const CATEGORY_ICONS: Record<Category, typeof Heart> = {
-  Lingerie: Heart,
-  Cueca: Shirt,
+  Eletrônicos: Sparkles,
+  Vestiário: Shirt,
   Fitness: Dumbbell,
+  "Moda Intima": Heart,
+  Variados: Sparkles,
 };
 
 function SkeletonCard() {

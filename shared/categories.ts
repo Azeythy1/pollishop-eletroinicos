@@ -1,10 +1,12 @@
-export const CATEGORIES = ["Lingerie", "Cueca", "Fitness"] as const;
+export const CATEGORIES = ["Eletrônicos", "Vestiário", "Fitness", "Moda Intima", "Variados"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 export const SUBCATEGORIES: Record<Category, readonly string[]> = {
-  Lingerie: ["Calcinhas", "Tangas", "Conjunto"],
-  Cueca: ["Box", "Sunga"],
+  Eletrônicos: ["Smartphones", "Tablets", "Acessórios"],
+  Vestiário: ["Camisetas", "Calças", "Jaquetas"],
   Fitness: ["Moleton", "Conjunto", "Macacão", "Blusinha", "Short", "Calça"],
+  "Moda Intima": ["Calcinhas", "Tangas", "Conjunto"],
+  Variados: ["Outros"],
 };
 
 export const SIZES = ["PP", "P", "M", "G", "GG", "XG", "Único"] as const;
@@ -29,7 +31,7 @@ export const CONDITION_LABELS = {
   regular: "Usado",
 } as const;
 
-export const STORE_NAME = "PolliShop";
+export const STORE_NAME = "Pollishop Virtual";
 export const STORE_TAGLINE = "Moda Íntima & Fitness";
 
 export function getSubcategories(category: Category): readonly string[] {
