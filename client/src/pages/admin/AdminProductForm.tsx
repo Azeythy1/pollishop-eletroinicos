@@ -212,14 +212,19 @@ export default function AdminProductForm() {
                     try {
                       for (const file of files) {
                         const fileData = await file.arrayBuffer();
-                        const base64 = Buffer.from(fileData).toString('base64');
+                        const bytes = new Uint8Array(fileData);
+                        let base64 = '';
+                        for (let i = 0; i < bytes.length; i++) {
+                          base64 += String.fromCharCode(bytes[i]);
+                        }
+                        const base64String = btoa(base64);
                         
                         const response = await fetch("/api/upload", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
                             file: { name: file.name, type: file.type },
-                            fileData: base64,
+                            fileData: base64String,
                           }),
                         });
                         
